@@ -149,11 +149,9 @@
   # Enable hardware support for QMK keyboards
   hardware.keyboard.qmk.enable = true;
 
-  # Home Manager
-  home-manager.users.nimalan = import ../../home/nimalan.nix;
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.backupFileExtension = "backup";
+  # Home Manager has been separated to its own configuration
+  # Run: home-manager switch --flake ./home-manager#nimalan
+  # to update user configuration independently
  
   # For Kanata
   boot.kernelModules = [ "uinput" ];

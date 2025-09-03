@@ -4,21 +4,16 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, home-manager }: {
+  outputs = { self, nixpkgs, nixos-hardware }: {
     nixosConfigurations = {
       framewerk = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./hosts/framewerk/configuration.nix
           nixos-hardware.nixosModules.framework-13-7040-amd
-          home-manager.nixosModules.home-manager
+          # Home Manager is now managed separately
         ];
       };
     };
