@@ -1,0 +1,30 @@
+(defcfg 
+  process-unmapped-keys yes)
+
+(defsrc
+  esc  mute voldwn volu prev pp next brdown brup f9 f10 f11 f12
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rmet rctl)
+
+(deflayer qwerty
+  esc  mute voldwn volu prev pp next brdown brup f9 f10 f11 f12
+  grv 1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  @arrows a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rmet rctl)
+
+(defalias 
+  arrows (layer-while-held arrows))
+
+(deflayer arrows
+  _    _    _    _    _    _    _    _    _    _    _    _    _ 
+  _    f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  _
+  _    _    _    _    _    _    _    pgdn pgup  _  _    _    _    _
+  _    _    _    _    _    home left down up rght end  _    _
+  _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _              _              _    _    _)
+
