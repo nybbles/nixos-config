@@ -101,10 +101,93 @@
       };
 
       colors = {
+        # Catppuccin Mocha theme
         primary = {
-          background = "0x1e1e1e";
-          foreground = "0xd4d4d4";
+          background = "0x1e1e2e";
+          foreground = "0xcdd6f4";
+          dim_foreground = "0x7f849c";
+          bright_foreground = "0xcdd6f4";
         };
+
+        cursor = {
+          text = "0x1e1e2e";
+          cursor = "0xf5e0dc";
+        };
+
+        vi_mode_cursor = {
+          text = "0x1e1e2e";
+          cursor = "0xb4befe";
+        };
+
+        search = {
+          matches = {
+            foreground = "0x1e1e2e";
+            background = "0xa6adc8";
+          };
+          focused_match = {
+            foreground = "0x1e1e2e";
+            background = "0xa6e3a1";
+          };
+        };
+
+        footer_bar = {
+          foreground = "0x1e1e2e";
+          background = "0xa6adc8";
+        };
+
+        hints = {
+          start = {
+            foreground = "0x1e1e2e";
+            background = "0xf9e2af";
+          };
+          end = {
+            foreground = "0x1e1e2e";
+            background = "0xa6adc8";
+          };
+        };
+
+        selection = {
+          text = "0x1e1e2e";
+          background = "0xf5e0dc";
+        };
+
+        normal = {
+          black = "0x45475a";
+          red = "0xf38ba8";
+          green = "0xa6e3a1";
+          yellow = "0xf9e2af";
+          blue = "0x89b4fa";
+          magenta = "0xf5c2e7";
+          cyan = "0x94e2d5";
+          white = "0xbac2de";
+        };
+
+        bright = {
+          black = "0x585b70";
+          red = "0xf38ba8";
+          green = "0xa6e3a1";
+          yellow = "0xf9e2af";
+          blue = "0x89b4fa";
+          magenta = "0xf5c2e7";
+          cyan = "0x94e2d5";
+          white = "0xa6adc8";
+        };
+
+        dim = {
+          black = "0x45475a";
+          red = "0xf38ba8";
+          green = "0xa6e3a1";
+          yellow = "0xf9e2af";
+          blue = "0x89b4fa";
+          magenta = "0xf5c2e7";
+          cyan = "0x94e2d5";
+          white = "0xbac2de";
+        };
+
+        indexed_colors = [
+          { index = 16; color = "0xfab387"; }
+          { index = 17; color = "0xf5e0dc"; }
+        ];
       };
     };
   };
@@ -219,7 +302,7 @@
     oh-my-zsh = {
       enable = true;
       plugins = [ "git" "sudo" "docker" "z" ];
-      theme = "robbyrussel";
+      theme = "robbyrussell";
     };
 
     # Add keybindings for history navigation with ctrl+p and ctrl+n
@@ -238,198 +321,191 @@
     # Note: Moved dotfiles setup to .zshenv (see below) for better reliability
   };
 
-  # Configure oh-my-posh with night-owl theme and vi mode indicator
+  # Configure oh-my-posh to use external config file
   programs.oh-my-posh = {
     enable = true;
     enableZshIntegration = true;
-    settings = {
-      "$schema" = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json";
-      version = 3;
-      final_space = true;
-      console_title_template = "{{ .Folder }}";
-      transient_prompt = {
-        template = "❯ ";
-        foreground = "#d6deeb";
-        background = "transparent";
-      };
-      blocks = [
-        {
-          type = "prompt";
-          alignment = "left";
-          segments = [
-            # Vi mode indicator
-            {
-              type = "vi";
-              style = "diamond";
-              leading_diamond = "╭─\ue0b6";
-              trailing_diamond = "\ue0b0";
-              template = " {{ .String }} ";
-              foreground = "#011627";
-              background = "#22da6e";
-              background_templates = [
-                "{{ if eq .String \"NORMAL\" }}#f4e56d{{ end }}"
-              ];
-              properties = {
-                vi_insert_prompt = "INSERT";
-                vi_cmd_prompt = "NORMAL";
-              };
-            }
-            # Hostname
-            {
-              type = "session";
-              style = "diamond";
-              template = " {{ .HostName }} ";
-              foreground = "#011627";
-              background = "#21c7a8";
-              trailing_diamond = "\ue0b0";
-            }
-            # Root user indicator
-            {
-              type = "root";
-              style = "powerline";
-              powerline_symbol = "\ue0b0";
-              template = " \uf292 ";
-              foreground = "#ffeb95";
-              background = "#ef5350";
-            }
-            # Current directory
-            {
-              type = "path";
-              style = "powerline";
-              powerline_symbol = "\ue0b0";
-              template = "{{ path .Path .Location }}";
-              foreground = "#011627";
-              background = "#82AAFF";
-              properties = {
-                folder_icon = "\uf07c ";
-                folder_separator_icon = "<#011627>\ue0b1</> ";
-                home_icon = " \ueb06 ";
-                style = "agnoster";
-              };
-            }
-            # Git status
-            {
-              type = "git";
-              style = "powerline";
-              powerline_symbol = "\ue0b0";
-              template = " {{ url .UpstreamIcon .UpstreamURL }}{{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} ";
-              foreground = "#011627";
-              background = "#addb67";
-              background_templates = [
-                "{{ if or (.Working.Changed) (.Staging.Changed) }}#e4cf6a{{ end }}"
-                "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#f78c6c{{ end }}"
-                "{{ if gt .Ahead 0 }}#C792EA{{ end }}"
-                "{{ if gt .Behind 0 }}#c792ea{{ end }}"
-              ];
-              properties = {
-                branch_icon = "\ue725 ";
-                fetch_stash_count = true;
-                fetch_status = true;
-                fetch_upstream_icon = true;
-                fetch_worktree_count = true;
-              };
-            }
-            # Execution time
-            {
-              type = "executiontime";
-              style = "diamond";
-              leading_diamond = "<transparent,#575656>\ue0b0</>";
-              trailing_diamond = "\ue0b4";
-              template = " {{ .FormattedMs }}";
-              foreground = "#d6deeb";
-              background = "#575656";
-              properties = {
-                style = "roundrock";
-                threshold = 0;
-              };
-            }
-          ];
-        }
-        # Right side prompt with language versions
-        {
-          type = "prompt";
-          alignment = "right";
-          overflow = "break";
-          segments = [
-            # Python
-            {
-              type = "python";
-              style = "diamond";
-              leading_diamond = "\ue0b2";
-              trailing_diamond = "<transparent,#306998>\ue0b2</>";
-              template = "\ue235  {{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }}{{ end }}";
-              foreground = "#FFE873";
-              background = "#306998";
-            }
-            # Node.js
-            {
-              type = "node";
-              style = "diamond";
-              leading_diamond = "\ue0b2";
-              trailing_diamond = "<transparent,#303030>\ue0b2</>";
-              template = "\ue718 {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} ";
-              foreground = "#3C873A";
-              background = "#303030";
-              properties = {
-                fetch_package_manager = true;
-                npm_icon = "<#cc3a3a>\ue71e</> ";
-                yarn_icon = "<#348cba>\ue6a7</> ";
-              };
-            }
-            # Rust
-            {
-              type = "rust";
-              style = "diamond";
-              leading_diamond = "\ue0b2";
-              trailing_diamond = "<transparent,#ffffff>\ue0b2</>";
-              template = "\ue7a8 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} ";
-              foreground = "#000000";
-              background = "#ffffff";
-            }
-            # Time
-            {
-              type = "time";
-              style = "diamond";
-              leading_diamond = "\ue0b2";
-              trailing_diamond = "\ue0b4";
-              template = "\ue641 {{ .CurrentDate | date .Format }}";
-              foreground = "#d6deeb";
-              background = "#234d70";
-              properties = {
-                time_format = "15:04:05";
-              };
-            }
-          ];
-        }
-        # New line with prompt symbol
-        {
-          type = "prompt";
-          alignment = "left";
-          newline = true;
-          segments = [
-            {
-              type = "text";
-              style = "plain";
-              template = "╰─";
-              foreground = "#21c7a8";
-            }
-            {
-              type = "status";
-              style = "plain";
-              template = "❯❯";
-              foreground = "#22da6e";
-              foreground_templates = [
-                "{{ if gt .Code 0 }}#ef5350{{ end }}"
-              ];
-              properties = {
-                always_enabled = true;
-              };
-            }
-          ];
-        }
-      ];
-    };
   };
+
+  # Create oh-my-posh config file with proper Unicode via Home Manager file management
+  home.file.".config/oh-my-posh/config.json".text = ''
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "version": 3,
+  "final_space": true,
+  "console_title_template": "{{ .Folder }}",
+  "transient_prompt": {
+    "template": "❯ ",
+    "foreground": "#a6e3a1",
+    "background": "transparent"
+  },
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "╭─",
+          "foreground": "#89b4fa"
+        },
+        {
+          "type": "vi",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4",
+          "template": " {{ .String }} ",
+          "foreground": "#1e1e2e",
+          "background": "#a6e3a1",
+          "background_templates": [
+            "{{ if eq .String \"NORMAL\" }}#f9e2af{{ end }}"
+          ],
+          "properties": {
+            "vi_insert_prompt": "INSERT",
+            "vi_cmd_prompt": "NORMAL"
+          }
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "   ",
+          "foreground": "transparent"
+        },
+        {
+          "type": "session",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4",
+          "template": " {{ .HostName }} ",
+          "foreground": "#cdd6f4",
+          "background": "#89b4fa"
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "   ",
+          "foreground": "transparent"
+        },
+        {
+          "type": "path",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4",
+          "template": " 📁 {{ path .Path .Location }} ",
+          "foreground": "#1e1e2e",
+          "background": "#fab387",
+          "properties": {
+            "style": "agnoster",
+            "max_depth": 3,
+            "folder_separator_icon": "/"
+          }
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "   ",
+          "foreground": "transparent"
+        },
+        {
+          "type": "git",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4",
+          "template": " 🌿 {{ .HEAD }}{{ if .Working.Changed }} ⚡{{ .Working.String }}{{ end }}{{ if .Staging.Changed }} ➕{{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} 📦{{ .StashCount }}{{ end }} ",
+          "foreground": "#1e1e2e",
+          "background": "#94e2d5",
+          "background_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}#f9e2af{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#f38ba8{{ end }}",
+            "{{ if gt .Ahead 0 }}#cba6f7{{ end }}",
+            "{{ if gt .Behind 0 }}#cba6f7{{ end }}"
+          ],
+          "properties": {
+            "fetch_stash_count": true,
+            "fetch_status": true,
+            "fetch_upstream_icon": true
+          }
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "right",
+      "overflow": "break",
+      "segments": [
+        {
+          "type": "python",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4",
+          "template": " 🐍 {{ if .Venv }}({{ .Venv }}) {{ end }}{{ .Major }}.{{ .Minor }} ",
+          "foreground": "#1e1e2e",
+          "background": "#f9e2af"
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "   ",
+          "foreground": "transparent"
+        },
+        {
+          "type": "node",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4",
+          "template": " ⬢ {{ .Major }}.{{ .Minor }} ",
+          "foreground": "#1e1e2e",
+          "background": "#a6e3a1"
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "   ",
+          "foreground": "transparent"
+        },
+        {
+          "type": "time",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4",
+          "template": " 🕐 {{ .CurrentDate | date .Format }} ",
+          "foreground": "#cdd6f4",
+          "background": "#89b4fa",
+          "properties": {
+            "time_format": "15:04"
+          }
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "╰─",
+          "foreground": "#89b4fa"
+        },
+        {
+          "type": "status",
+          "style": "plain",
+          "template": "❯ ",
+          "foreground": "#a6e3a1",
+          "foreground_templates": [
+            "{{ if gt .Code 0 }}#f38ba8{{ end }}"
+          ],
+          "properties": {
+            "always_enabled": true
+          }
+        }
+      ]
+    }
+  ]
+}
+  '';
 
   # Configure zoxide
   programs.zoxide = {
