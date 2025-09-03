@@ -195,18 +195,6 @@
     };
   };
 
-  # Dotfiles integration - clone repo as ~/.config for full git workflow
-  home.activation.cloneDotfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    if [ ! -d "$HOME/.config/.git" ]; then
-      echo "Setting up dotfiles repository as ~/.config..."
-      rm -rf $HOME/.config
-      ${pkgs.git}/bin/git clone --recurse-submodules https://github.com/nybbles/dot-config.git $HOME/.config
-      echo "Dotfiles cloned successfully! ~/.config is now your git repository."
-    else
-      echo "Dotfiles already set up at ~/.config"
-    fi
-  '';
-
   # Shell configuration - Home Manager will manage basic setup, your dotfiles provide the details
   programs.zsh = {
     enable = true;
@@ -214,10 +202,7 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    # Set ZDOTDIR to point to your dotfiles zsh config
-    sessionVariables = {
-      ZDOTDIR = "${config.home.homeDirectory}/.config/zsh";
-    };
+    # Let Home Manager manage zsh configuration directly
 
     shellAliases = {
       ll = "ls -alF";
@@ -227,6 +212,8 @@
       fgrep = "fgrep --color=auto";
       egrep = "egrep --color=auto";
       cd = "z"; # Use zoxide instead of cd
+      nix-rebuild = "sudo nixos-rebuild switch --flake ~/code/nixos-config/nixos#framewerk";
+      home-switch = "home-manager switch --flake ~/code/nixos-config/home-manager#nimalan";
     };
 
     oh-my-zsh = {
