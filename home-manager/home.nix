@@ -563,10 +563,55 @@
         '';
       }
       
+      # Which-key for tmux - shows available key bindings
+      {
+        plugin = tmuxPlugins.tmux-which-key;
+        extraConfig = ''
+          set -g @tmux-which-key-xdg-open 'firefox'
+          set -g @tmux-which-key-disable-autoupdate 'on'
+          
+          # Set custom keybinding for tmux-which-key (leader + space)
+          set -g @tmux-which-key-key-binding Space
+          
+          # Key descriptions for which-key
+          set -g @tmux-which-key-key-descriptions '
+            "h": "Select left pane",
+            "j": "Select down pane", 
+            "k": "Select up pane",
+            "l": "Select right pane",
+            "H": "Resize pane left",
+            "J": "Resize pane down",
+            "K": "Resize pane up", 
+            "L": "Resize pane right",
+            "|": "Split window horizontally",
+            "-": "Split window vertically",
+            "c": "Create new window",
+            "r": "Reload tmux config",
+            "t": "Choose tree (sessions/windows)",
+            "w": "Fuzzy window selector",
+            "f": "Fuzzy session/path selector",
+            "M": "Move window to position",
+            "<": "Swap window left",
+            ">": "Swap window right",
+            "Enter": "Enter copy mode",
+            "Space": "Show this help menu"
+          '
+        '';
+      }
+      
       # Navigation and utilities
       tmuxPlugins.vim-tmux-navigator
       tmuxPlugins.fzf-tmux-url
       tmuxPlugins.yank
+      
+      # Enhanced fuzzy finding
+      {
+        plugin = tmuxPlugins.tmux-fzf;
+        extraConfig = ''
+          # tmux-fzf configuration
+          set -g @fzf-url-bind 'u'
+        '';
+      }
       
       # Session persistence - must be after theme
       {
@@ -654,6 +699,12 @@
       bind -T copy-mode-vi C-v send -X rectangle-toggle
       bind -T copy-mode-vi y send -X copy-selection-and-cancel
       
+      # Additional key bindings from dot-config
+      bind t choose-tree
+      bind w run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-window.sh"
+      bind -r '<' swap-window -d -t -1
+      bind -r '>' swap-window -d -t +1
+      
       # Custom key bindings for scripts
       bind-key f run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-session-path.sh"
       bind-key M run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
@@ -684,6 +735,10 @@
     };
     ".config/tmux/scripts/move-window-to-position.sh" = {
       source = ../tmux/scripts/move-window-to-position.sh;
+      executable = true;
+    };
+    ".config/tmux/scripts/fzf-window.sh" = {
+      source = ../tmux/scripts/fzf-window.sh;
       executable = true;
     };
     ".tmuxifier/layouts/code.window.sh" = {
