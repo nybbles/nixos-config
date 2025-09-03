@@ -110,6 +110,7 @@
   environment.systemPackages = with pkgs; [
     vim
     git
+    home-manager  # CLI for managing user configurations
 
     # QMK/VIA support for mechanical keyboards
     qmk

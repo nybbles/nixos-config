@@ -13,7 +13,6 @@
         modules = [
           ./hosts/framewerk/configuration.nix
           nixos-hardware.nixosModules.framework-13-7040-amd
-          # Home Manager is now managed separately
         ];
       };
     };
