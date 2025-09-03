@@ -454,14 +454,165 @@
     ];
   };
 
+  # Configure tmux
+  programs.tmux = {
+    enable = true;
+    shell = "${pkgs.zsh}/bin/zsh";
+    terminal = "tmux-256color";
+    historyLimit = 100000;
+    mouse = true;
+    keyMode = "vi";
+    customPaneNavigationAndResize = true;
+    
+    plugins = with pkgs; [
+      # Theme - must be first to avoid status bar conflicts
+      {
+        plugin = tmuxPlugins.catppuccin;
+        extraConfig = ''
+          set -g @catppuccin_flavour 'mocha'
+          set -g @catppuccin_window_left_separator ""
+          set -g @catppuccin_window_right_separator " "
+          set -g @catppuccin_window_middle_separator " █"
+          set -g @catppuccin_window_number_position "right"
+          set -g @catppuccin_window_default_fill "number"
+          set -g @catppuccin_window_default_text "#W"
+          set -g @catppuccin_window_current_fill "number"
+          set -g @catppuccin_window_current_text "#W"
+          set -g @catppuccin_status_modules_right "directory user host session"
+          set -g @catppuccin_status_left_separator  " "
+          set -g @catppuccin_status_right_separator ""
+          set -g @catppuccin_status_fill "icon"
+          set -g @catppuccin_status_connect_separator "no"
+          set -g @catppuccin_directory_text "#{pane_current_path}"
+        '';
+      }
+      
+      # Navigation and utilities
+      tmuxPlugins.vim-tmux-navigator
+      tmuxPlugins.fzf-tmux-url
+      tmuxPlugins.yank
+      
+      # Session persistence - must be after theme
+      {
+        plugin = tmuxPlugins.resurrect;
+        extraConfig = ''
+          set -g @resurrect-strategy-nvim 'session'
+          set -g @resurrect-capture-pane-contents 'on'
+          set -g @resurrect-restore-bash-history 'on'
+        '';
+      }
+      
+      {
+        plugin = tmuxPlugins.continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '15'
+        '';
+      }
+    ];
+
+    extraConfig = ''
+      # Set prefix key to Ctrl-a
+      set -g prefix C-a
+      unbind C-b
+      bind C-a send-prefix
+      
+      # Start windows and panes at 1, not 0
+      set -g base-index 1
+      setw -g pane-base-index 1
+      
+      # Renumber windows when a window is closed
+      set -g renumber-windows on
+      
+      # Enable focus events for vim
+      set -g focus-events on
+      
+      # Faster command sequences
+      set -s escape-time 10
+      
+      # Increase repeat timeout
+      set -sg repeat-time 600
+      
+      # Activity monitoring
+      setw -g monitor-activity on
+      set -g visual-activity off
+      
+      # Window navigation
+      bind-key -n M-1 select-window -t 1
+      bind-key -n M-2 select-window -t 2
+      bind-key -n M-3 select-window -t 3
+      bind-key -n M-4 select-window -t 4
+      bind-key -n M-5 select-window -t 5
+      bind-key -n M-6 select-window -t 6
+      bind-key -n M-7 select-window -t 7
+      bind-key -n M-8 select-window -t 8
+      bind-key -n M-9 select-window -t 9
+      
+      # Pane navigation (vim-style)
+      bind h select-pane -L
+      bind j select-pane -D
+      bind k select-pane -U
+      bind l select-pane -R
+      
+      # Pane resizing
+      bind -r H resize-pane -L 2
+      bind -r J resize-pane -D 2
+      bind -r K resize-pane -U 2
+      bind -r L resize-pane -R 2
+      
+      # Split panes with | and -
+      bind | split-window -h -c "#{pane_current_path}"
+      bind - split-window -v -c "#{pane_current_path}"
+      unbind '"'
+      unbind %
+      
+      # New window in current path
+      bind c new-window -c "#{pane_current_path}"
+      
+      # Reload config
+      bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"
+      
+      # Copy mode improvements
+      bind Enter copy-mode
+      bind -T copy-mode-vi v send -X begin-selection
+      bind -T copy-mode-vi C-v send -X rectangle-toggle
+      bind -T copy-mode-vi y send -X copy-selection-and-cancel
+      
+      # Custom key bindings for scripts
+      bind-key f run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-session-path.sh"
+      bind-key M run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
+      
+      # Enable RGB color
+      set -sa terminal-overrides ",*256col*:RGB"
+      
+      # Enable undercurl
+      set -sa terminal-overrides ',*:Smulx=\E[4::%p1%dm'
+      set -sa terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'
+    '';
+  };
+
   # Session variables
   home.sessionVariables = {
     EDITOR = "nvim";
     BROWSER = "firefox";
     TERMINAL = "alacritty";
     PAGER = "moar";
-    # Point tmux to your dotfiles config
-    TMUX_CONF = "${config.home.homeDirectory}/.config/tmux/tmux.conf";
+  };
+
+  # Symlink tmux scripts and layouts
+  home.file = {
+    ".config/tmux/scripts/fzf-session-path.sh" = {
+      source = ./tmux/scripts/fzf-session-path.sh;
+      executable = true;
+    };
+    ".config/tmux/scripts/move-window-to-position.sh" = {
+      source = ./tmux/scripts/move-window-to-position.sh;
+      executable = true;
+    };
+    ".tmuxifier/layouts/code.window.sh" = {
+      source = ./tmux/layouts/code.window.sh;
+      executable = true;
+    };
   };
 
   
