@@ -690,6 +690,9 @@
       source = ../tmux/layouts/code.window.sh;
       executable = true;
     };
+    
+    # Kanata keyboard configuration
+    ".config/kanata.kbd".source = ../kanata.kbd;
   };
 
   
