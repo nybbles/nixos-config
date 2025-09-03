@@ -597,6 +597,7 @@
     BROWSER = "firefox";
     TERMINAL = "alacritty";
     PAGER = "moar";
+    TMUXIFIER_LAYOUT_PATH = "${config.home.homeDirectory}/.tmuxifier/layouts";
   };
 
   # Symlink tmux scripts and layouts
