@@ -602,15 +602,15 @@
   # Symlink tmux scripts and layouts
   home.file = {
     ".config/tmux/scripts/fzf-session-path.sh" = {
-      source = ./tmux/scripts/fzf-session-path.sh;
+      source = ../tmux/scripts/fzf-session-path.sh;
       executable = true;
     };
     ".config/tmux/scripts/move-window-to-position.sh" = {
-      source = ./tmux/scripts/move-window-to-position.sh;
+      source = ../tmux/scripts/move-window-to-position.sh;
       executable = true;
     };
     ".tmuxifier/layouts/code.window.sh" = {
-      source = ./tmux/layouts/code.window.sh;
+      source = ../tmux/layouts/code.window.sh;
       executable = true;
     };
   };
