@@ -25,8 +25,10 @@
   # User packages
   home.packages = with pkgs; [
     # Terminal and CLI tools
-    alacritty
+    alacritty  # Terminal emulator with writable config for theme switching
     gh # GitHub CLI
+    neofetch # System information tool
+    jq # JSON processor
     zoxide # Smart cd command
     fd # Fast find for fzf
     ripgrep # Fast grep for fzf
@@ -45,10 +47,15 @@
     # Media
     spotify
 
+    # Browsers
+    google-chrome
+
     # Development tools
-    neovim
     tmux
     rustup # includes cargo
+    gcc # C compiler needed for Rust builds
+    pkg-config # Required for building Rust crates with system dependencies
+    glib.dev # GLib development headers
     uv # Python package manager
     claude-code # Claude CLI
     pyenv
@@ -72,125 +79,6 @@
     uv
   ];
 
-  # Configure Alacritty
-  programs.alacritty = {
-    enable = true;
-    settings = {
-      font = {
-        normal = {
-          family = "0xProto Nerd Font";
-          style = "Regular";
-        };
-        bold = {
-          family = "0xProto Nerd Font";
-          style = "Bold";
-        };
-        italic = {
-          family = "0xProto Nerd Font";
-          style = "Italic";
-        };
-        size = 12.0;
-      };
-
-      window = {
-        padding = {
-          x = 6;
-          y = 6;
-        };
-        decorations = "full";
-      };
-
-      colors = {
-        # Catppuccin Mocha theme
-        primary = {
-          background = "0x1e1e2e";
-          foreground = "0xcdd6f4";
-          dim_foreground = "0x7f849c";
-          bright_foreground = "0xcdd6f4";
-        };
-
-        cursor = {
-          text = "0x1e1e2e";
-          cursor = "0xf5e0dc";
-        };
-
-        vi_mode_cursor = {
-          text = "0x1e1e2e";
-          cursor = "0xb4befe";
-        };
-
-        search = {
-          matches = {
-            foreground = "0x1e1e2e";
-            background = "0xa6adc8";
-          };
-          focused_match = {
-            foreground = "0x1e1e2e";
-            background = "0xa6e3a1";
-          };
-        };
-
-        footer_bar = {
-          foreground = "0x1e1e2e";
-          background = "0xa6adc8";
-        };
-
-        hints = {
-          start = {
-            foreground = "0x1e1e2e";
-            background = "0xf9e2af";
-          };
-          end = {
-            foreground = "0x1e1e2e";
-            background = "0xa6adc8";
-          };
-        };
-
-        selection = {
-          text = "0x1e1e2e";
-          background = "0xf5e0dc";
-        };
-
-        normal = {
-          black = "0x45475a";
-          red = "0xf38ba8";
-          green = "0xa6e3a1";
-          yellow = "0xf9e2af";
-          blue = "0x89b4fa";
-          magenta = "0xf5c2e7";
-          cyan = "0x94e2d5";
-          white = "0xbac2de";
-        };
-
-        bright = {
-          black = "0x585b70";
-          red = "0xf38ba8";
-          green = "0xa6e3a1";
-          yellow = "0xf9e2af";
-          blue = "0x89b4fa";
-          magenta = "0xf5c2e7";
-          cyan = "0x94e2d5";
-          white = "0xa6adc8";
-        };
-
-        dim = {
-          black = "0x45475a";
-          red = "0xf38ba8";
-          green = "0xa6e3a1";
-          yellow = "0xf9e2af";
-          blue = "0x89b4fa";
-          magenta = "0xf5c2e7";
-          cyan = "0x94e2d5";
-          white = "0xbac2de";
-        };
-
-        indexed_colors = [
-          { index = 16; color = "0xfab387"; }
-          { index = 17; color = "0xf5e0dc"; }
-        ];
-      };
-    };
-  };
 
   # Configure Git
   programs.git = {
@@ -206,6 +94,7 @@
       };
     };
   };
+
 
   # GNOME configuration
   dconf.settings = {
@@ -295,8 +184,10 @@
       fgrep = "fgrep --color=auto";
       egrep = "egrep --color=auto";
       cd = "z"; # Use zoxide instead of cd
-      nix-rebuild = "sudo nixos-rebuild switch --flake ~/code/nixos-config/nixos#framewerk";
+      nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
       home-switch = "home-manager switch --flake ~/code/nixos-config/home-manager#nimalan";
+      themester = "~/code/themester/target/release/themester"; # Themester theme manager
+      themester-daemon = "~/code/themester/target/release/themester-daemon"; # Themester daemon
     };
 
     oh-my-zsh = {
@@ -506,6 +397,14 @@
   ]
 }
   '';
+
+  # Configure Neovim
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+    viAlias = true;
+    vimAlias = true;
+  };
 
   # Configure zoxide
   programs.zoxide = {
@@ -769,5 +668,166 @@
 
   # Enable the service
   systemd.user.startServices = true;
+
+  # Automatically clone Neovim config repository
+  home.activation.cloneNeovimConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    REPO_PATH="$HOME/code/config-nvim"
+    
+    # Check GitHub CLI authentication
+    if ! $DRY_RUN_CMD ${pkgs.gh}/bin/gh auth status >/dev/null 2>&1; then
+      echo "⚠️  GitHub CLI authentication required for cloning repositories!"
+      echo "   Please run: gh auth login"
+      echo "   Then retry: home-manager switch"
+      exit 0  # Don't fail the whole activation
+    fi
+    
+    if [ ! -d "$REPO_PATH/.git" ]; then
+      echo "Cloning neovim config repository..."
+      mkdir -p "$HOME/code"
+      $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo clone nybbles/config-nvim "$REPO_PATH" || {
+        echo "Failed to clone repository. Please check your GitHub access."
+        exit 0  # Don't fail the whole activation
+      }
+    else
+      echo "Neovim config repository already exists at $REPO_PATH"
+      # Optional: pull latest changes using gh
+      cd "$REPO_PATH" && $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo sync || true
+    fi
+  '';
+
+  # Automatically clone Themester repository
+  home.activation.cloneThemester = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    REPO_PATH="$HOME/code/themester"
+    
+    # Check GitHub CLI authentication
+    if ! $DRY_RUN_CMD ${pkgs.gh}/bin/gh auth status >/dev/null 2>&1; then
+      echo "⚠️  GitHub CLI authentication required for cloning repositories!"
+      echo "   Please run: gh auth login"
+      echo "   Then retry: home-manager switch"
+      exit 0  # Don't fail the whole activation
+    fi
+    
+    if [ ! -d "$REPO_PATH/.git" ]; then
+      echo "Cloning themester repository..."
+      mkdir -p "$HOME/code"
+      $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo clone nybbles/themester "$REPO_PATH" || {
+        echo "Failed to clone themester repository. Please check your GitHub access to private repositories."
+        exit 0  # Don't fail the whole activation
+      }
+    else
+      echo "Themester repository already exists at $REPO_PATH"
+      # Optional: pull latest changes using gh
+      cd "$REPO_PATH" && $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo sync || true
+    fi
+    
+    # Set up Rust toolchain if needed
+    if ! $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup show 2>/dev/null | grep -q "default toolchain"; then
+      echo "Setting up Rust toolchain..."
+      $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup default stable || {
+        echo "Failed to set up Rust toolchain. Please run manually: rustup default stable"
+      }
+    fi
+    
+    # Build themester with cargo if not already built
+    if [ -d "$REPO_PATH" ] && [ -f "$REPO_PATH/Cargo.toml" ] && [ ! -f "$REPO_PATH/target/release/themester" ]; then
+      echo "Building themester with cargo..."
+      cd "$REPO_PATH" && $DRY_RUN_CMD ${pkgs.cargo}/bin/cargo build --release || {
+        echo "Failed to build themester. You may need to run: rustup default stable"
+      }
+    fi
+  '';
+
+  # Install Themester themes
+  home.activation.installThemesterThemes = lib.hm.dag.entryAfter ["cloneThemester"] ''
+    if [ -d "$HOME/code/themester/themes" ]; then
+      echo "Installing Themester themes..."
+      mkdir -p "$HOME/.themes/available"
+      $DRY_RUN_CMD cp -r "$HOME/code/themester/themes"/* "$HOME/.themes/available/" || {
+        echo "Failed to install themes. Please check permissions."
+      }
+    else
+      echo "Themester themes directory not found, skipping theme installation"
+    fi
+  '';
+
+  # Setup Themester daemon service
+  home.activation.setupThemesterDaemon = lib.hm.dag.entryAfter ["installThemesterThemes"] ''
+    if [ -f "$HOME/code/themester/target/release/themester" ]; then
+      echo "Setting up Themester daemon..."
+      # Install systemd service
+      $DRY_RUN_CMD "$HOME/code/themester/target/release/themester" install all || {
+        echo "Failed to install Themester service. Please run manually: themester install all"
+      }
+      
+      # Reload systemd and enable service
+      if command -v systemctl >/dev/null 2>&1; then
+        $DRY_RUN_CMD systemctl --user daemon-reload || true
+        $DRY_RUN_CMD systemctl --user enable themester-daemon.service || {
+          echo "Failed to enable Themester daemon. Please run manually: systemctl --user enable themester-daemon.service"
+        }
+      fi
+    else
+      echo "Themester binary not found, skipping daemon setup"
+    fi
+  '';
+
+  # Create writable Alacritty config for theme switching
+  home.activation.createAlacrittyConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    ALACRITTY_DIR="$HOME/.config/alacritty"
+    ALACRITTY_CONFIG="$ALACRITTY_DIR/alacritty.toml"
+    
+    echo "Creating writable Alacritty config for theme switching..."
+    
+    # Remove any existing symlinks
+    if [ -L "$ALACRITTY_CONFIG" ]; then
+      $DRY_RUN_CMD rm "$ALACRITTY_CONFIG"
+    fi
+    
+    # Create directory if it doesn't exist
+    $DRY_RUN_CMD mkdir -p "$ALACRITTY_DIR"
+    
+    # Create basic config file (writable, not a symlink)
+    $DRY_RUN_CMD cat > "$ALACRITTY_CONFIG" << 'EOF'
+# Alacritty Configuration
+# Basic configuration only - colors managed by Themester
+
+[general]
+ipc_socket = true
+live_config_reload = true
+
+[font]
+size = 12.0
+
+[font.normal]
+family = "0xProto Nerd Font"
+style = "Regular"
+
+[font.bold]
+family = "0xProto Nerd Font"
+style = "Bold"
+
+[font.italic]
+family = "0xProto Nerd Font"
+style = "Italic"
+
+[window]
+decorations = "full"
+
+[window.padding]
+x = 6
+y = 6
+
+# Colors will be added here by Themester when themes are applied
+EOF
+    
+    echo "✓ Created writable Alacritty config at $ALACRITTY_CONFIG"
+  '';
+
+  # Symlink Neovim configuration to external repository
+  xdg.configFile."nvim" = {
+    source = config.lib.file.mkOutOfStoreSymlink 
+      "${config.home.homeDirectory}/code/config-nvim";
+    recursive = true;
+  };
 
 }

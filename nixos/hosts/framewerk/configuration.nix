@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -110,6 +110,7 @@
   environment.systemPackages = with pkgs; [
     vim
     git
+    gh # GitHub CLI - needed for Home Manager activation scripts
     home-manager  # CLI for managing user configurations
 
     # QMK/VIA support for mechanical keyboards
@@ -134,6 +135,14 @@
 
   # Enable fingerprint reader support (if you have one)
   services.fprintd.enable = true;
+  services.fprintd.tod.enable = true;
+  services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix;
+  
+  # Enable PAM integration for fingerprint authentication
+  security.pam.services.gdm.fprintAuth = true;
+  security.pam.services.gdm-fingerprint.fprintAuth = true;
+  security.pam.services.login.fprintAuth = lib.mkForce true;
+  security.pam.services.sudo.fprintAuth = true;
 
   # Enable Bluetooth
   hardware.bluetooth.enable = true;
