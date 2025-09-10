@@ -158,6 +158,9 @@
 
   # Enable hardware support for QMK keyboards
   hardware.keyboard.qmk.enable = true;
+  
+  # Enable ZSA keyboard support (for Moonlander)
+  hardware.keyboard.zsa.enable = true;
 
   # Home Manager has been separated to its own configuration
   # Run: home-manager switch --flake ./home-manager#nimalan
