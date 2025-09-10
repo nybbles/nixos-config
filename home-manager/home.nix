@@ -468,6 +468,7 @@
         extraConfig = ''
           set -g @tmux-which-key-xdg-open 'firefox'
           set -g @tmux-which-key-disable-autoupdate 'on'
+          set -g @tmux-which-key-disable-autobuild 'on'
           
           # Set custom keybinding for tmux-which-key (leader + space)
           set -g @tmux-which-key-key-binding Space
@@ -495,6 +496,9 @@
             "Enter": "Enter copy mode",
             "Space": "Show this help menu"
           '
+          
+          # Manually source the init file since autobuild is disabled
+          run-shell "tmux source-file ${pkgs.tmuxPlugins.tmux-which-key}/share/tmux-plugins/tmux-which-key/plugin/init.example.tmux"
         '';
       }
       
