@@ -117,6 +117,7 @@
     qmk
     via
     vial
+    keymapp # ZSA keyboard configuration tool
   ];
 
   programs._1password.enable = true;
