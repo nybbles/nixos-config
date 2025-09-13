@@ -62,14 +62,7 @@
     tmuxifier
     lazygit
     
-    # LSP servers and formatters for Neovim
-    lua-language-server
-    # rust-analyzer is already provided by rustup
-    ruff # Python linter/formatter
-    stylua # Lua formatter
-    selene # Lua linter
-    nodePackages.bash-language-server
-    pyright # Python type checker
+    # LSP servers now handled by Mason via nix-ld compatibility
 
     # GNOME Extensions
     # gnomeExtensions.pop-shell
