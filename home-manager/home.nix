@@ -88,11 +88,28 @@
 
     # Use moar as pager for git commands
     extraConfig = {
-      core.pager = "moar";
+      core = {
+        pager = "moar";
+        askPass = "";
+      };
       pager = {
         diff = "moar";
         log = "moar";
         show = "moar";
+      };
+      credential = {
+        helper = "${pkgs.gh}/bin/gh auth git-credential";
+        "https://github.com" = {
+          helper = "${pkgs.gh}/bin/gh auth git-credential";
+        };
+        "https://gist.github.com" = {
+          helper = "${pkgs.gh}/bin/gh auth git-credential";
+        };
+      };
+      url = {
+        "https://github.com/" = {
+          insteadOf = "git@github.com:";
+        };
       };
     };
   };
