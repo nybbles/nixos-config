@@ -152,6 +152,9 @@
   # Enable zsh system-wide
   programs.zsh.enable = true;
 
+  # Enable nix-ld for running dynamically linked executables (Mason LSP servers, etc.)
+  programs.nix-ld.enable = true;
+
   fonts.packages = [ pkgs.nerd-fonts._0xproto ];
 
   # QMK/VIA udev rules for keyboard flashing
