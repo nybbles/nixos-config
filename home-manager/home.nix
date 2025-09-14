@@ -9,7 +9,7 @@
 {
   # Home Manager needs a bit of information about you and the paths it should manage
   home.username = username;
-  home.homeDirectory = "/home/${username}";
+  home.homeDirectory = if pkgs.stdenv.isDarwin then "/Users/${username}" else "/home/${username}";
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -42,6 +42,7 @@
     obsidian
 
     # Security
+  ] ++ lib.optionals pkgs.stdenv.isLinux [
     _1password-gui
 
     # Media
@@ -79,6 +80,8 @@
     python3
     pyenv
     uv
+  ] ++ lib.optionals pkgs.stdenv.isDarwin [
+    # macOS-specific packages can go here if needed
   ];
 
 
@@ -115,8 +118,8 @@
   };
 
 
-  # GNOME configuration
-  dconf.settings = {
+  # GNOME configuration (Linux only)
+  dconf.settings = lib.mkIf pkgs.stdenv.isLinux {
     "org/gnome/shell" = {
       disable-user-extensions = false;
       enabled-extensions = [
@@ -203,10 +206,11 @@
       fgrep = "fgrep --color=auto";
       egrep = "egrep --color=auto";
       cd = "z"; # Use zoxide instead of cd
-      nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
       home-switch = "home-manager switch --flake ~/code/nixos-config/home-manager#nimalan";
       themester = "~/code/themester/target/release/themester"; # Themester theme manager
       themester-daemon = "~/code/themester/target/release/themester-daemon"; # Themester daemon
+    } // lib.optionalAttrs pkgs.stdenv.isLinux {
+      nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
     };
 
     oh-my-zsh = {
@@ -679,8 +683,8 @@
   };
 
   
-  # Create systemd user service for Kanata
-  systemd.user.services.kanata = {
+  # Create systemd user service for Kanata (Linux only)
+  systemd.user.services.kanata = lib.mkIf pkgs.stdenv.isLinux {
     Unit = {
       Description = "Kanata key remapper";
       After = [ "graphical-session.target" ];
@@ -695,8 +699,8 @@
     };
   };
 
-  # Enable the service
-  systemd.user.startServices = true;
+  # Enable the service (Linux only)
+  systemd.user.startServices = lib.mkIf pkgs.stdenv.isLinux true;
 
   # Automatically clone Neovim config repository
   home.activation.cloneNeovimConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -779,21 +783,26 @@
     fi
   '';
 
-  # Setup Themester daemon service
+  # Setup Themester daemon service (Linux only)
   home.activation.setupThemesterDaemon = lib.hm.dag.entryAfter ["installThemesterThemes"] ''
     if [ -f "$HOME/code/themester/target/release/themester" ]; then
       echo "Setting up Themester daemon..."
-      # Install systemd service
-      $DRY_RUN_CMD "$HOME/code/themester/target/release/themester" install all || {
-        echo "Failed to install Themester service. Please run manually: themester install all"
-      }
-      
-      # Reload systemd and enable service
-      if command -v systemctl >/dev/null 2>&1; then
-        $DRY_RUN_CMD systemctl --user daemon-reload || true
-        $DRY_RUN_CMD systemctl --user enable themester-daemon.service || {
-          echo "Failed to enable Themester daemon. Please run manually: systemctl --user enable themester-daemon.service"
+      # Only setup systemd service on Linux
+      if [[ "$(uname)" == "Linux" ]]; then
+        # Install systemd service
+        $DRY_RUN_CMD "$HOME/code/themester/target/release/themester" install all || {
+          echo "Failed to install Themester service. Please run manually: themester install all"
         }
+        
+        # Reload systemd and enable service
+        if command -v systemctl >/dev/null 2>&1; then
+          $DRY_RUN_CMD systemctl --user daemon-reload || true
+          $DRY_RUN_CMD systemctl --user enable themester-daemon.service || {
+            echo "Failed to enable Themester daemon. Please run manually: systemctl --user enable themester-daemon.service"
+          }
+        fi
+      else
+        echo "Skipping Themester daemon setup on macOS"
       fi
     else
       echo "Themester binary not found, skipping daemon setup"
