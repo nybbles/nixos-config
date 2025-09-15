@@ -899,13 +899,13 @@ EOF
     fi
   '';
 
-  # Setup Themester daemon service (Linux only)
+  # Setup Themester daemon service (Linux and macOS)
   home.activation.setupThemesterDaemon = lib.hm.dag.entryAfter ["installThemesterThemes"] ''
-    if [ -f "$HOME/code/themester/target/release/themester" ]; then
+    if [ -f "$HOME/code/themester/target/release/themester-daemon" ]; then
       echo "Setting up Themester daemon..."
-      # Only setup systemd service on Linux
+      
       if [[ "$(uname)" == "Linux" ]]; then
-        # Install systemd service
+        # Linux: Install systemd service
         $DRY_RUN_CMD "$HOME/code/themester/target/release/themester" install all || {
           echo "Failed to install Themester service. Please run manually: themester install all"
         }
@@ -917,11 +917,97 @@ EOF
             echo "Failed to enable Themester daemon. Please run manually: systemctl --user enable themester-daemon.service"
           }
         fi
+      elif [[ "$(uname)" == "Darwin" ]]; then
+        # macOS: Setup Launch Agent
+        echo "Setting up Themester daemon for macOS..."
+        
+        # Create LaunchAgents directory if it doesn't exist
+        LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
+        $DRY_RUN_CMD mkdir -p "$LAUNCH_AGENTS_DIR"
+        
+        # Create Launch Agent plist file
+        PLIST_FILE="$LAUNCH_AGENTS_DIR/com.themester.daemon.plist"
+        $DRY_RUN_CMD cat > "$PLIST_FILE" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.themester.daemon</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>THEMESTER_DAEMON_PATH</string>
+    </array>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <true/>
+    
+    <key>StandardOutPath</key>
+    <string>THEMESTER_LOG_PATH</string>
+    
+    <key>StandardErrorPath</key>
+    <string>THEMESTER_LOG_PATH</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>RUST_LOG</key>
+        <string>info</string>
+        <key>HOME</key>
+        <string>THEMESTER_HOME_PATH</string>
+        <key>USER</key>
+        <string>THEMESTER_USER</string>
+    </dict>
+    
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
+EOF
+        
+        # Replace placeholders in plist file
+        DAEMON_PATH="$HOME/code/themester/target/release/themester-daemon"
+        LOG_PATH="$HOME/.local/share/themester/themester-daemon.log"
+        HOME_PATH="$HOME"
+        USER_NAME="$(whoami)"
+        
+        # Create log directory
+        $DRY_RUN_CMD mkdir -p "$(dirname "$LOG_PATH")"
+        
+        # Replace placeholders
+        $DRY_RUN_CMD sed -i.bak "s|THEMESTER_DAEMON_PATH|$DAEMON_PATH|g" "$PLIST_FILE"
+        $DRY_RUN_CMD sed -i.bak "s|THEMESTER_LOG_PATH|$LOG_PATH|g" "$PLIST_FILE"
+        $DRY_RUN_CMD sed -i.bak "s|THEMESTER_HOME_PATH|$HOME_PATH|g" "$PLIST_FILE"
+        $DRY_RUN_CMD sed -i.bak "s|THEMESTER_USER|$USER_NAME|g" "$PLIST_FILE"
+        $DRY_RUN_CMD rm -f "$PLIST_FILE.bak"
+        
+        echo "✓ Created Launch Agent: $PLIST_FILE"
+        
+        # Unload existing service if running
+        if launchctl list | grep -q "com.themester.daemon"; then
+          echo "Unloading existing themester daemon..."
+          $DRY_RUN_CMD launchctl unload "$PLIST_FILE" 2>/dev/null || true
+        fi
+        
+        # Load and start the service
+        echo "Loading themester daemon..."
+        $DRY_RUN_CMD launchctl load "$PLIST_FILE" || {
+          echo "Failed to load themester daemon. Please run manually: launchctl load $PLIST_FILE"
+        }
+        
+        echo "✓ Themester daemon setup complete for macOS"
+        echo "  Log file: $LOG_PATH"
+        echo "  To check status: launchctl list | grep themester"
+        echo "  To stop: launchctl unload $PLIST_FILE"
+        echo "  To start: launchctl load $PLIST_FILE"
       else
-        echo "Skipping Themester daemon setup on macOS"
+        echo "Unsupported operating system: $(uname)"
       fi
     else
-      echo "Themester binary not found, skipping daemon setup"
+      echo "Themester daemon binary not found, skipping daemon setup"
     fi
   '';
 
