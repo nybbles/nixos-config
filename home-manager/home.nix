@@ -24,6 +24,7 @@
 
   # User packages
   home.packages = with pkgs; [
+    git
     # Terminal and CLI tools
     alacritty  # Terminal emulator with writable config for theme switching
     gh # GitHub CLI
@@ -37,9 +38,35 @@
     oh-my-posh
     oh-my-zsh
 
-    # Communication and social
-    discord
-    obsidian
+    # Development tools
+    pkg-config # Required for building Rust crates with system dependencies
+    glib.dev # GLib development headers
+    libiconv # Character encoding conversion library
+    
+    # Fonts
+    nerd-fonts._0xproto # 0xProto Nerd Font for terminal and coding
+    
+    # Development tools
+    cursor-cli # Cursor CLI for AI-powered development
+ 
+    tmux
+    rustup # includes cargo
+
+
+
+    pyenv
+    tmuxifier
+    lazygit
+
+    claude-code # Claude CLI
+
+    nodejs
+    unzip
+
+    # Python ecosystem
+    python3
+    pyenv
+    uv
 
     # Security
   ] ++ lib.optionals pkgs.stdenv.isLinux [
@@ -48,21 +75,16 @@
     # Media
     spotify
 
+    # Communication and social
+    discord
+    obsidian
+
     # Browsers
     google-chrome
 
-    # Development tools
-    tmux
-    rustup # includes cargo
+   
     gcc # C compiler needed for Rust builds
-    pkg-config # Required for building Rust crates with system dependencies
-    glib.dev # GLib development headers
-    uv # Python package manager
-    claude-code # Claude CLI
-    pyenv
-    tmuxifier
-    lazygit
-    
+
     # LSP servers now handled by Mason via nix-ld compatibility
 
     # GNOME Extensions
@@ -73,15 +95,14 @@
     # gnomeExtensions.gsconnect
 
     kanata
-    nodejs
-    unzip
-
-    # Python ecosystem
-    python3
-    pyenv
-    uv
   ] ++ lib.optionals pkgs.stdenv.isDarwin [
     # macOS-specific packages can go here if needed
+
+    clang
+    llvm
+    darwin.cctools
+
+
   ];
 
 
@@ -702,8 +723,94 @@
   # Enable the service (Linux only)
   systemd.user.startServices = lib.mkIf pkgs.stdenv.isLinux true;
 
+  # macOS Launch Agent for Alacritty shortcut
+  launchd.agents.alacritty = lib.mkIf pkgs.stdenv.isDarwin {
+    enable = true;
+    config = {
+      Label = "com.alacritty.shortcut";
+      ProgramArguments = [ "${pkgs.alacritty}/bin/alacritty" ];
+      RunAtLoad = false;
+      KeepAlive = false;
+    };
+  };
+
+  # Create proper macOS application entry
+  home.activation.createAlacrittyAppEntry = lib.mkIf pkgs.stdenv.isDarwin (lib.hm.dag.entryAfter ["writeBoundary"] ''
+    echo "Creating Alacritty application entry..."
+    
+    # Create Applications directory if it doesn't exist
+    $DRY_RUN_CMD mkdir -p "$HOME/Applications"
+    
+    # Create a proper macOS application bundle using the Nix-managed binary directly
+    ALACRITTY_APP="$HOME/Applications/Alacritty.app"
+    $DRY_RUN_CMD rm -rf "$ALACRITTY_APP" 2>/dev/null || true
+    
+    # Create the app bundle structure
+    $DRY_RUN_CMD mkdir -p "$ALACRITTY_APP/Contents/MacOS"
+    $DRY_RUN_CMD mkdir -p "$ALACRITTY_APP/Contents/Resources"
+    
+    # Copy the actual Alacritty binary (this should preserve architecture info)
+    $DRY_RUN_CMD cp "${pkgs.alacritty}/bin/alacritty" "$ALACRITTY_APP/Contents/MacOS/"
+    
+    # Create a minimal Info.plist
+    $DRY_RUN_CMD cat > "$ALACRITTY_APP/Contents/Info.plist" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>alacritty</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.alacritty</string>
+    <key>CFBundleName</key>
+    <string>Alacritty</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.15.1</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleDisplayName</key>
+    <string>Alacritty</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <false/>
+</dict>
+</plist>
+EOF
+    
+    echo "✓ Created Alacritty application bundle at $ALACRITTY_APP"
+    echo "  This should now work without Rosetta since it uses the native ARM64 binary"
+  '');
+
+  # Create Alacritty application shortcut using a simpler approach
+  home.activation.createAlacrittyApp = lib.mkIf pkgs.stdenv.isDarwin (lib.hm.dag.entryAfter ["writeBoundary"] ''
+    echo "Creating Alacritty application shortcut..."
+    
+    # Create Applications directory if it doesn't exist
+    $DRY_RUN_CMD mkdir -p "$HOME/Applications"
+    
+    # Create a simple shell script that launches Alacritty
+    ALACRITTY_SCRIPT="$HOME/Applications/Alacritty.command"
+    $DRY_RUN_CMD cat > "$ALACRITTY_SCRIPT" << 'EOF'
+#!/bin/bash
+# Launch Alacritty terminal
+exec "${pkgs.alacritty}/bin/alacritty" "$@"
+EOF
+    
+    # Make the script executable
+    $DRY_RUN_CMD chmod +x "$ALACRITTY_SCRIPT"
+    
+    echo "✓ Created Alacritty command script at $ALACRITTY_SCRIPT"
+    echo "  You can double-click this file to launch Alacritty"
+  '');
+
   # Automatically clone Neovim config repository
   home.activation.cloneNeovimConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    export PATH="${pkgs.git}/bin:$PATH"
     REPO_PATH="$HOME/code/config-nvim"
     
     # Check GitHub CLI authentication
@@ -730,6 +837,7 @@
 
   # Automatically clone Themester repository
   home.activation.cloneThemester = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    export PATH="${pkgs.git}/bin:$PATH"
     REPO_PATH="$HOME/code/themester"
     
     # Check GitHub CLI authentication
@@ -752,6 +860,14 @@
       # Optional: pull latest changes using gh
       cd "$REPO_PATH" && $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo sync || true
     fi
+
+    export PATH="${pkgs.git}/bin:${pkgs.rustc}/bin:${pkgs.cargo}/bin:${pkgs.clang}/bin:${pkgs.pkg-config}/bin:$PATH"
+    export CC="${pkgs.clang}/bin/clang"
+    export CXX="${pkgs.clang}/bin/clang++"
+    export PKG_CONFIG_PATH="${pkgs.pkg-config}/lib/pkgconfig:${pkgs.glib.dev}/lib/pkgconfig"
+    export LDFLAGS="-L${pkgs.libiconv}/lib"
+    export CPPFLAGS="-I${pkgs.libiconv}/include"
+    export RUSTFLAGS="-L native=${pkgs.libiconv}/lib"
     
     # Set up Rust toolchain if needed
     if ! $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup show 2>/dev/null | grep -q "default toolchain"; then

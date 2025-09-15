@@ -9,14 +9,19 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager }: {
-    homeConfigurations = {
-      nimalan = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        modules = [ 
-          (import ./home.nix { username = "nimalan"; })
-        ];
-      };
+  outputs = { self, nixpkgs, home-manager, ... }@inputs:
+    let
+      # Support both Linux and macOS
+      supportedSystems = [ "x86_64-linux" "aarch64-darwin" ];
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+    in {
+      homeConfigurations = forAllSystems (system: {
+        nimalan = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          modules = [ 
+            (import ./home.nix { username = "nimalan"; })
+          ];
+        };
+      });
     };
-  };
 }
