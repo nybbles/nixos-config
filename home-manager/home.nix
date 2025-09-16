@@ -1036,7 +1036,7 @@ ipc_socket = true
 live_config_reload = true
 
 [font]
-size = 12.0
+size = 14.0
 
 [font.normal]
 family = "0xProto Nerd Font"
