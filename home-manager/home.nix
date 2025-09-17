@@ -65,7 +65,9 @@
     unzip
 
     # Python ecosystem
-    python312
+    (python312.withPackages (ps: with ps; [
+      virtualenv
+    ]))
     pyenv
     uv
 
