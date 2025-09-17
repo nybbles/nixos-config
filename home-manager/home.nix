@@ -56,8 +56,6 @@
     docker
     docker-compose
 
-
-
     pyenv
     tmuxifier
     lazygit
@@ -71,6 +69,13 @@
     python3
     pyenv
     uv
+
+    pdm
+
+    ffmpeg
+    libpq
+
+    lazysql
 
     # Security
   ] ++ lib.optionals pkgs.stdenv.isLinux [
