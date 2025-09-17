@@ -35,7 +35,6 @@
     ripgrep # Fast grep for fzf
     bottom # Modern htop alternative (btm)
     moar # Advanced pager with syntax highlighting
-    oh-my-posh
     oh-my-zsh
 
     # Development tools
@@ -250,7 +249,7 @@
     };
 
     # Add keybindings for history navigation with ctrl+p and ctrl+n
-    initExtra = ''
+    initContent = ''
       # Enable vi mode
       bindkey -v
       
