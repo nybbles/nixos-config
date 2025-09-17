@@ -51,6 +51,10 @@
  
     tmux
     rustup # includes cargo
+    
+    # Containerization
+    docker
+    docker-compose
 
 
 
