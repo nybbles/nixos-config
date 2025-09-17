@@ -23,5 +23,15 @@
           ];
         };
       });
+      
+      # Add packages output for compatibility
+      packages = forAllSystems (system: {
+        nimalan = self.homeConfigurations.${system}.nimalan.activationPackage;
+      });
+      
+      # Add legacyPackages output for compatibility  
+      legacyPackages = forAllSystems (system: {
+        nimalan = self.homeConfigurations.${system}.nimalan.activationPackage;
+      });
     };
 }
