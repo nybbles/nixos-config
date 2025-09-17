@@ -65,7 +65,7 @@
     unzip
 
     # Python ecosystem
-    python3
+    python312
     pyenv
     uv
 
@@ -1021,21 +1021,29 @@ EOF
 
   # Create writable Alacritty config for theme switching
   home.activation.createAlacrittyConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    ALACRITTY_DIR="$HOME/.config/alacritty"
-    ALACRITTY_CONFIG="$ALACRITTY_DIR/alacritty.toml"
+    ALACRITTY_CONFIG_DIR="$HOME/.config/alacritty"
+    ALACRITTY_APP_SUPPORT_DIR="$HOME/Library/Application Support/alacritty"
+    ALACRITTY_CONFIG="$ALACRITTY_CONFIG_DIR/alacritty.toml"
+    ALACRITTY_APP_SUPPORT_CONFIG="$ALACRITTY_APP_SUPPORT_DIR/alacritty.toml"
     
-    echo "Creating writable Alacritty config for theme switching..."
+    echo "Setting up Alacritty config for theme switching..."
     
-    # Remove any existing symlinks
-    if [ -L "$ALACRITTY_CONFIG" ]; then
-      $DRY_RUN_CMD rm "$ALACRITTY_CONFIG"
-    fi
+    # Create directories if they don't exist
+    $DRY_RUN_CMD mkdir -p "$ALACRITTY_CONFIG_DIR"
+    $DRY_RUN_CMD mkdir -p "$ALACRITTY_APP_SUPPORT_DIR"
     
-    # Create directory if it doesn't exist
-    $DRY_RUN_CMD mkdir -p "$ALACRITTY_DIR"
-    
-    # Create basic config file (writable, not a symlink)
-    $DRY_RUN_CMD cat > "$ALACRITTY_CONFIG" << 'EOF'
+    # Check if Application Support config exists and has theme data
+    if [ -f "$ALACRITTY_APP_SUPPORT_CONFIG" ] && grep -q "themester_managed" "$ALACRITTY_APP_SUPPORT_CONFIG" 2>/dev/null; then
+      echo "Found existing themed config in Application Support"
+      # Copy it to .config if .config doesn't have theme data
+      if [ ! -f "$ALACRITTY_CONFIG" ] || ! grep -q "themester_managed" "$ALACRITTY_CONFIG" 2>/dev/null; then
+        $DRY_RUN_CMD cp "$ALACRITTY_APP_SUPPORT_CONFIG" "$ALACRITTY_CONFIG"
+        echo "✓ Copied themed config to $ALACRITTY_CONFIG"
+      fi
+    else
+      # Create basic config file if it doesn't exist
+      if [ ! -f "$ALACRITTY_CONFIG" ]; then
+        $DRY_RUN_CMD cat > "$ALACRITTY_CONFIG" << 'EOF'
 # Alacritty Configuration
 # Basic configuration only - colors managed by Themester
 
@@ -1067,8 +1075,23 @@ y = 6
 
 # Colors will be added here by Themester when themes are applied
 EOF
+        echo "✓ Created basic Alacritty config at $ALACRITTY_CONFIG"
+      fi
+      
+      # Copy to Application Support if it doesn't exist there
+      if [ ! -f "$ALACRITTY_APP_SUPPORT_CONFIG" ]; then
+        $DRY_RUN_CMD cp "$ALACRITTY_CONFIG" "$ALACRITTY_APP_SUPPORT_CONFIG"
+        echo "✓ Copied config to Application Support"
+      fi
+    fi
     
-    echo "✓ Created writable Alacritty config at $ALACRITTY_CONFIG"
+    # Create symlink from .config to Application Support to keep them in sync
+    # This way themester can update Application Support and .config will reflect changes
+    if [ ! -L "$ALACRITTY_CONFIG" ]; then
+      $DRY_RUN_CMD rm -f "$ALACRITTY_CONFIG"
+      $DRY_RUN_CMD ln -sf "$ALACRITTY_APP_SUPPORT_CONFIG" "$ALACRITTY_CONFIG"
+      echo "✓ Created symlink from .config to Application Support"
+    fi
   '';
 
   # Symlink Neovim configuration to external repository
