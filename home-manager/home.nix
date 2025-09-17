@@ -236,7 +236,7 @@
       fgrep = "fgrep --color=auto";
       egrep = "egrep --color=auto";
       cd = "z"; # Use zoxide instead of cd
-      home-switch = "home-manager switch --impure --flake ~/code/nixos-config/home-manager#nimalan";
+      home-switch = "home-manager switch --flake ~/.config/home-manager#nimalan";
       themester = "~/code/themester/target/release/themester"; # Themester theme manager
       themester-daemon = "~/code/themester/target/release/themester-daemon"; # Themester daemon
     } // lib.optionalAttrs pkgs.stdenv.isLinux {
