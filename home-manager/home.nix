@@ -74,6 +74,7 @@
 
     ffmpeg
     libpq
+    pgcli  # PostgreSQL client with auto-completion and syntax highlighting
 
     # Security
   ] ++ lib.optionals pkgs.stdenv.isLinux [
