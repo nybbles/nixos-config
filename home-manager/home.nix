@@ -65,13 +65,12 @@
     unzip
 
     # Python ecosystem
-    (python312.withPackages (ps: with ps; [
-      virtualenv
-    ]))
     pyenv
     uv
 
     pdm
+    # Install virtualenv for Python 3.13 separately
+    python313.pkgs.virtualenv
 
     ffmpeg
     libpq
