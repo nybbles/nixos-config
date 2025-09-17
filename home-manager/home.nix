@@ -75,8 +75,6 @@
     ffmpeg
     libpq
 
-    lazysql
-
     # Security
   ] ++ lib.optionals pkgs.stdenv.isLinux [
     _1password-gui
