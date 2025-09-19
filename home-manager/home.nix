@@ -75,6 +75,7 @@
     ffmpeg
     libpq
     pgcli  # PostgreSQL client with auto-completion and syntax highlighting
+    xh  # Fast and friendly HTTP client (HTTPie in Rust)
 
     # Security
   ] ++ lib.optionals pkgs.stdenv.isLinux [
