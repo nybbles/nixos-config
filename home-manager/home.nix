@@ -989,6 +989,8 @@
             <string>THEMESTER_HOME_PATH</string>
             <key>USER</key>
             <string>THEMESTER_USER</string>
+            <key>PATH</key>
+            <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:THEMESTER_HOME_PATH/.nix-profile/bin:/nix/var/nix/profiles/default/bin</string>
         </dict>
 
         <key>ProcessType</key>
