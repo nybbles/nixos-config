@@ -246,7 +246,7 @@
         nix-format-check = "alejandra --check ."; # Check formatting without changing files
         
         # GitHub PR workflow
-        open-current-pr = "~/code/nixos-config/tmux/scripts/open-current-pr.sh"; # Open current branch's PR in Octo.nvim
+        open-current-pr = "~/.config/tmux/scripts/open-current-pr.sh"; # Open current branch's PR in Octo.nvim
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -720,10 +720,6 @@
       source = ../tmux/scripts/fzf-window.sh;
       executable = true;
     };
-    ".config/tmux/scripts/gh-pr-review.sh" = {
-      source = ../tmux/scripts/gh-pr-review.sh;
-      executable = true;
-    };
     ".config/tmux/scripts/open-current-pr.sh" = {
       source = ../tmux/scripts/open-current-pr.sh;
       executable = true;
@@ -1020,22 +1016,22 @@
             echo "✓ Created Launch Agent: $PLIST_FILE"
 
             # Unload existing service if running
-            if launchctl list | grep -q "com.themester.daemon"; then
+            if /bin/launchctl list | grep -q "com.themester.daemon"; then
               echo "Unloading existing themester daemon..."
-              $DRY_RUN_CMD launchctl unload "$PLIST_FILE" 2>/dev/null || true
+              $DRY_RUN_CMD /bin/launchctl unload "$PLIST_FILE" 2>/dev/null || true
             fi
 
             # Load and start the service
             echo "Loading themester daemon..."
-            $DRY_RUN_CMD launchctl load "$PLIST_FILE" || {
-              echo "Failed to load themester daemon. Please run manually: launchctl load $PLIST_FILE"
+            $DRY_RUN_CMD /bin/launchctl load "$PLIST_FILE" || {
+              echo "Failed to load themester daemon. Please run manually: /bin/launchctl load $PLIST_FILE"
             }
 
             echo "✓ Themester daemon setup complete for macOS"
             echo "  Log file: $LOG_PATH"
-            echo "  To check status: launchctl list | grep themester"
-            echo "  To stop: launchctl unload $PLIST_FILE"
-            echo "  To start: launchctl load $PLIST_FILE"
+            echo "  To check status: /bin/launchctl list | grep themester"
+            echo "  To stop: /bin/launchctl unload $PLIST_FILE"
+            echo "  To start: /bin/launchctl load $PLIST_FILE"
           else
             echo "Unsupported operating system: $(uname)"
           fi

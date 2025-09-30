@@ -25,31 +25,6 @@ fi
 CURRENT_REPO=$(gh repo view --json owner,name --jq '.owner.login + "/" + .name' 2>/dev/null)
 echo "✅ Found PR #${PR_NUMBER} in ${CURRENT_REPO}"
 
-# Check if we're in tmux and decide how to open
-if [[ -n "$TMUX" ]]; then
-    # Get tmux window width to decide on layout
-    WINDOW_WIDTH=$(tmux display-message -p '#{window_width}')
-    CURRENT_DIR=$(pwd)
-    
-    if [[ "$WINDOW_WIDTH" -ge 160 ]]; then
-        # Wide enough for horizontal split
-        echo "📱 Opening in horizontal split (width: ${WINDOW_WIDTH})"
-        tmux split-window -h -c "$CURRENT_DIR"
-        tmux select-pane -R
-    else
-        # Create new window
-        echo "📱 Opening in new window (width: ${WINDOW_WIDTH})"
-        tmux new-window -c "$CURRENT_DIR" -n "PR#${PR_NUMBER}"
-    fi
-    
-    # Start nvim with Octo command
-    tmux send-keys "nvim" Enter
-    sleep 1
-    tmux send-keys ":Octo pr edit ${PR_NUMBER}" Enter
-    
-    echo "🎉 Opened PR #${PR_NUMBER} for review in Octo.nvim"
-else
-    # Not in tmux, just launch nvim directly
-    echo "🚀 Opening PR #${PR_NUMBER} in Octo.nvim..."
-    nvim -c ":Octo pr edit ${PR_NUMBER}"
-fi
+# Launch nvim with Octo command directly
+echo "🚀 Opening PR #${PR_NUMBER} in Octo.nvim..."
+nvim -c ":Octo pr edit ${PR_NUMBER}"
