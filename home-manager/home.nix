@@ -244,6 +244,9 @@
         nix-format = "alejandra ."; # Format all nix files in current directory
         nix-format-file = "alejandra"; # Format specific file(s) - usage: nix-format-file file.nix
         nix-format-check = "alejandra --check ."; # Check formatting without changing files
+        
+        # GitHub PR workflow
+        open-current-pr = "~/code/nixos-config/tmux/scripts/open-current-pr.sh"; # Open current branch's PR in Octo.nvim
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -684,8 +687,6 @@
       bind-key f run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-session-path.sh"
       bind-key M run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
       
-      # GitHub PR workflow bindings
-      bind-key P new-window -c "#{pane_current_path}" -n "gh-dash" "gh dash"
 
       # Enable RGB color
       set -sa terminal-overrides ",*256col*:RGB"
@@ -719,12 +720,12 @@
       source = ../tmux/scripts/fzf-window.sh;
       executable = true;
     };
-    ".config/tmux/scripts/gh-pr-checkout.sh" = {
-      source = ../tmux/scripts/gh-pr-checkout.sh;
-      executable = true;
-    };
     ".config/tmux/scripts/gh-pr-review.sh" = {
       source = ../tmux/scripts/gh-pr-review.sh;
+      executable = true;
+    };
+    ".config/tmux/scripts/open-current-pr.sh" = {
+      source = ../tmux/scripts/open-current-pr.sh;
       executable = true;
     };
     ".tmuxifier/layouts/code.window.sh" = {
