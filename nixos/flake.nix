@@ -6,7 +6,11 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
-  outputs = { self, nixpkgs, nixos-hardware }: {
+  outputs = {
+    self,
+    nixpkgs,
+    nixos-hardware,
+  }: {
     nixosConfigurations = {
       framewerk = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

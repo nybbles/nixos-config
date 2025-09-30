@@ -1,21 +1,22 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs, lib, ... }:
-
 {
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
+  nix.settings.experimental-features = ["nix-command" "flakes"];
 
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
 
   networking.hostName = "framewerk"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -65,7 +66,7 @@
   services.displayManager.defaultSession = "gnome";
 
   # Enable touchpad support
-  services.libinput.enable = true; 
+  services.libinput.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -93,7 +94,7 @@
   users.users.nimalan = {
     isNormalUser = true;
     description = "Nimalan Mahendran";
-    extraGroups = [ "networkmanager" "wheel" "uinput" "input" ];
+    extraGroups = ["networkmanager" "wheel" "uinput" "input"];
     packages = with pkgs; [
     ];
     shell = pkgs.zsh;
@@ -111,7 +112,7 @@
     vim
     git
     gh # GitHub CLI - needed for Home Manager activation scripts
-    home-manager  # CLI for managing user configurations
+    home-manager # CLI for managing user configurations
 
     # QMK/VIA support for mechanical keyboards
     qmk
@@ -125,7 +126,7 @@
     enable = true;
     # Certain features, including CLI integration and system authentication support,
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
-    polkitPolicyOwners = [ "nimalan" ];
+    polkitPolicyOwners = ["nimalan"];
   };
 
   # Enable firmware updates
@@ -138,7 +139,7 @@
   services.fprintd.enable = true;
   services.fprintd.tod.enable = true;
   services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix;
-  
+
   # Enable PAM integration for fingerprint authentication
   security.pam.services.gdm.fprintAuth = true;
   security.pam.services.gdm-fingerprint.fprintAuth = true;
@@ -155,28 +156,27 @@
   # Enable nix-ld for running dynamically linked executables (Mason LSP servers, etc.)
   programs.nix-ld.enable = true;
 
-  fonts.packages = [ pkgs.nerd-fonts._0xproto ];
+  fonts.packages = [pkgs.nerd-fonts._0xproto];
 
   # QMK/VIA udev rules for keyboard flashing
-  services.udev.packages = [ pkgs.qmk-udev-rules ];
+  services.udev.packages = [pkgs.qmk-udev-rules];
 
   # Enable hardware support for QMK keyboards
   hardware.keyboard.qmk.enable = true;
-  
+
   # Enable ZSA keyboard support (for Moonlander)
   hardware.keyboard.zsa.enable = true;
 
   # Home Manager has been separated to its own configuration
   # Run: home-manager switch --flake ./home-manager#nimalan
   # to update user configuration independently
- 
+
   # For Kanata
-  boot.kernelModules = [ "uinput" ];
+  boot.kernelModules = ["uinput"];
   hardware.uinput.enable = true;
   services.udev.extraRules = ''
     KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
   '';
-
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -204,5 +204,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.05"; # Did you read the comment?
-
 }
