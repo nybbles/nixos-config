@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# open-current-pr.sh - Open the current branch's PR in Octo.nvim
+# open-current-pr.sh - Open the current branch's PR in gh.nvim
 # Usage: open-current-pr.sh
 
 set -e
@@ -25,6 +25,6 @@ fi
 CURRENT_REPO=$(gh repo view --json owner,name --jq '.owner.login + "/" + .name' 2>/dev/null)
 echo "✅ Found PR #${PR_NUMBER} in ${CURRENT_REPO}"
 
-# Launch nvim with Octo command directly
-echo "🚀 Opening PR #${PR_NUMBER} in Octo.nvim..."
-nvim -c ":Octo pr edit ${PR_NUMBER}"
+# Launch nvim with gh.nvim command directly
+echo "🚀 Opening PR #${PR_NUMBER} in gh.nvim..."
+nvim -c ":GHOpenPR ${PR_NUMBER}"
