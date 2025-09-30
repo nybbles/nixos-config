@@ -532,7 +532,7 @@
       {
         plugin = tmuxPlugins.tmux-which-key;
         extraConfig = ''
-          set -g @tmux-which-key-xdg-open 'firefox'
+          set -g @tmux-which-key-xdg-open 'open -a "Google Chrome"'
           set -g @tmux-which-key-disable-autoupdate 'on'
           set -g @tmux-which-key-disable-autobuild 'on'
 
@@ -683,6 +683,9 @@
       # Custom key bindings for scripts
       bind-key f run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-session-path.sh"
       bind-key M run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
+      
+      # GitHub PR workflow bindings
+      bind-key P new-window -c "#{pane_current_path}" -n "gh-dash" "gh dash"
 
       # Enable RGB color
       set -sa terminal-overrides ",*256col*:RGB"
@@ -696,7 +699,7 @@
   # Session variables
   home.sessionVariables = {
     EDITOR = "nvim";
-    BROWSER = "firefox";
+    BROWSER = "open -a 'Google Chrome'";
     TERMINAL = "alacritty";
     PAGER = "moar";
     TMUXIFIER_LAYOUT_PATH = "${config.home.homeDirectory}/.tmuxifier/layouts";
@@ -714,6 +717,14 @@
     };
     ".config/tmux/scripts/fzf-window.sh" = {
       source = ../tmux/scripts/fzf-window.sh;
+      executable = true;
+    };
+    ".config/tmux/scripts/gh-pr-checkout.sh" = {
+      source = ../tmux/scripts/gh-pr-checkout.sh;
+      executable = true;
+    };
+    ".config/tmux/scripts/gh-pr-review.sh" = {
+      source = ../tmux/scripts/gh-pr-review.sh;
       executable = true;
     };
     ".tmuxifier/layouts/code.window.sh" = {
