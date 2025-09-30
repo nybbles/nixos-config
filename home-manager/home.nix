@@ -113,6 +113,28 @@
       clang
       llvm
       darwin.cctools
+
+      # Python
+      pdm
+
+      # Media processing (for audio/video embedding)
+      ffmpeg
+
+      # Development tools
+      git
+      gh
+
+      # AWS CLI for S3/ECR operations
+      awscli2
+
+      # Docker for containerization
+      docker
+      docker-compose
+
+      # Additional tools
+      xh
+      jq
+      pgcli
     ];
 
   # Configure Git
@@ -244,7 +266,7 @@
         nix-format = "alejandra ."; # Format all nix files in current directory
         nix-format-file = "alejandra"; # Format specific file(s) - usage: nix-format-file file.nix
         nix-format-check = "alejandra --check ."; # Check formatting without changing files
-        
+
         # GitHub PR workflow
         open-current-pr = "~/.config/tmux/scripts/open-current-pr.sh"; # Open current branch's PR in Octo.nvim
       }
@@ -258,8 +280,11 @@
       theme = "robbyrussell";
     };
 
-    # Add keybindings for history navigation with ctrl+p and ctrl+n
     initContent = ''
+      # Ensure that any packages installed by nix do not clobber the Python path
+      unset PYTHONPATH
+
+      # Add keybindings for history navigation with ctrl+p and ctrl+n
       # Enable vi mode
       bindkey -v
 
@@ -686,7 +711,7 @@
       # Custom key bindings for scripts
       bind-key f run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-session-path.sh"
       bind-key M run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
-      
+
 
       # Enable RGB color
       set -sa terminal-overrides ",*256col*:RGB"
@@ -704,6 +729,7 @@
     TERMINAL = "alacritty";
     PAGER = "moar";
     TMUXIFIER_LAYOUT_PATH = "${config.home.homeDirectory}/.tmuxifier/layouts";
+    PDM_VENV_BACKEND = "venv";
   };
 
   # Symlink tmux scripts and layouts
@@ -1044,51 +1070,51 @@
 
   # Create writable themester config with proper symlinks (macOS only)
   home.activation.createThemesterConfig = lib.mkIf pkgs.stdenv.isDarwin (lib.hm.dag.entryAfter ["writeBoundary"] ''
-        THEMESTER_CONFIG_DIR="$HOME/.config/themester"
-        THEMESTER_APP_SUPPORT_DIR="$HOME/Library/Application Support/themester"
-        THEMESTER_CONFIG="$THEMESTER_CONFIG_DIR/config.toml"
-        THEMESTER_APP_SUPPORT_CONFIG="$THEMESTER_APP_SUPPORT_DIR/config.toml"
-        
-        echo "Setting up Themester config symlinks for macOS..."
-        
-        # Create directories if they don't exist
-        $DRY_RUN_CMD mkdir -p "$THEMESTER_CONFIG_DIR"
-        $DRY_RUN_CMD mkdir -p "$THEMESTER_APP_SUPPORT_DIR"
-        
-        # If config exists in .config but not in Application Support, copy it there
-        if [ -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
-          $DRY_RUN_CMD cp "$THEMESTER_CONFIG" "$THEMESTER_APP_SUPPORT_CONFIG"
-          echo "✓ Copied existing config to Application Support"
-        fi
-        
-        # If config doesn't exist in either location, create default config
-        if [ ! -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
-          $DRY_RUN_CMD cat > "$THEMESTER_APP_SUPPORT_CONFIG" << 'EOF'
-current_theme = "catppuccin-mocha"
-variant_preference = "auto"
+            THEMESTER_CONFIG_DIR="$HOME/.config/themester"
+            THEMESTER_APP_SUPPORT_DIR="$HOME/Library/Application Support/themester"
+            THEMESTER_CONFIG="$THEMESTER_CONFIG_DIR/config.toml"
+            THEMESTER_APP_SUPPORT_CONFIG="$THEMESTER_APP_SUPPORT_DIR/config.toml"
 
-[applications.tmux]
-enabled = true
+            echo "Setting up Themester config symlinks for macOS..."
 
-[applications.neovim]
-enabled = true
+            # Create directories if they don't exist
+            $DRY_RUN_CMD mkdir -p "$THEMESTER_CONFIG_DIR"
+            $DRY_RUN_CMD mkdir -p "$THEMESTER_APP_SUPPORT_DIR"
 
-[applications.alacritty]
-enabled = true
+            # If config exists in .config but not in Application Support, copy it there
+            if [ -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
+              $DRY_RUN_CMD cp "$THEMESTER_CONFIG" "$THEMESTER_APP_SUPPORT_CONFIG"
+              echo "✓ Copied existing config to Application Support"
+            fi
 
-[applications.ohmyposh]
-enabled = true
-EOF
-          echo "✓ Created default themester config in Application Support"
-        fi
-        
-        # Create symlink from .config to Application Support
-        # This ensures both the CLI and daemon use the same config file on macOS
-        if [ ! -L "$THEMESTER_CONFIG" ]; then
-          $DRY_RUN_CMD rm -f "$THEMESTER_CONFIG"
-          $DRY_RUN_CMD ln -sf "$THEMESTER_APP_SUPPORT_CONFIG" "$THEMESTER_CONFIG"
-          echo "✓ Created symlink from .config to Application Support for themester config"
-        fi
+            # If config doesn't exist in either location, create default config
+            if [ ! -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
+              $DRY_RUN_CMD cat > "$THEMESTER_APP_SUPPORT_CONFIG" << 'EOF'
+    current_theme = "catppuccin-mocha"
+    variant_preference = "auto"
+
+    [applications.tmux]
+    enabled = true
+
+    [applications.neovim]
+    enabled = true
+
+    [applications.alacritty]
+    enabled = true
+
+    [applications.ohmyposh]
+    enabled = true
+    EOF
+              echo "✓ Created default themester config in Application Support"
+            fi
+
+            # Create symlink from .config to Application Support
+            # This ensures both the CLI and daemon use the same config file on macOS
+            if [ ! -L "$THEMESTER_CONFIG" ]; then
+              $DRY_RUN_CMD rm -f "$THEMESTER_CONFIG"
+              $DRY_RUN_CMD ln -sf "$THEMESTER_APP_SUPPORT_CONFIG" "$THEMESTER_CONFIG"
+              echo "✓ Created symlink from .config to Application Support for themester config"
+            fi
   '');
   # Create writable Alacritty config for theme switching
   home.activation.createAlacrittyConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
