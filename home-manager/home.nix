@@ -1040,6 +1040,54 @@
         fi
   '';
 
+  # Create writable themester config with proper symlinks (macOS only)
+  home.activation.createThemesterConfig = lib.mkIf pkgs.stdenv.isDarwin (lib.hm.dag.entryAfter ["writeBoundary"] ''
+        THEMESTER_CONFIG_DIR="$HOME/.config/themester"
+        THEMESTER_APP_SUPPORT_DIR="$HOME/Library/Application Support/themester"
+        THEMESTER_CONFIG="$THEMESTER_CONFIG_DIR/config.toml"
+        THEMESTER_APP_SUPPORT_CONFIG="$THEMESTER_APP_SUPPORT_DIR/config.toml"
+        
+        echo "Setting up Themester config symlinks for macOS..."
+        
+        # Create directories if they don't exist
+        $DRY_RUN_CMD mkdir -p "$THEMESTER_CONFIG_DIR"
+        $DRY_RUN_CMD mkdir -p "$THEMESTER_APP_SUPPORT_DIR"
+        
+        # If config exists in .config but not in Application Support, copy it there
+        if [ -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
+          $DRY_RUN_CMD cp "$THEMESTER_CONFIG" "$THEMESTER_APP_SUPPORT_CONFIG"
+          echo "✓ Copied existing config to Application Support"
+        fi
+        
+        # If config doesn't exist in either location, create default config
+        if [ ! -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
+          $DRY_RUN_CMD cat > "$THEMESTER_APP_SUPPORT_CONFIG" << 'EOF'
+current_theme = "catppuccin-mocha"
+variant_preference = "auto"
+
+[applications.tmux]
+enabled = true
+
+[applications.neovim]
+enabled = true
+
+[applications.alacritty]
+enabled = true
+
+[applications.ohmyposh]
+enabled = true
+EOF
+          echo "✓ Created default themester config in Application Support"
+        fi
+        
+        # Create symlink from .config to Application Support
+        # This ensures both the CLI and daemon use the same config file on macOS
+        if [ ! -L "$THEMESTER_CONFIG" ]; then
+          $DRY_RUN_CMD rm -f "$THEMESTER_CONFIG"
+          $DRY_RUN_CMD ln -sf "$THEMESTER_APP_SUPPORT_CONFIG" "$THEMESTER_CONFIG"
+          echo "✓ Created symlink from .config to Application Support for themester config"
+        fi
+  '');
   # Create writable Alacritty config for theme switching
   home.activation.createAlacrittyConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
         ALACRITTY_CONFIG_DIR="$HOME/.config/alacritty"
