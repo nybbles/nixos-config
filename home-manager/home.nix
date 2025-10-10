@@ -80,6 +80,7 @@
       # awscli3  # AWS CLI v2
 
       # Security
+      speedtest-cli # Network speed testing tool
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
       _1password-gui
@@ -521,6 +522,13 @@
     enable = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
+    stdlib = ''
+      # Only silence status messages, keep errors visible
+      log_status() {
+        # Don't print status messages to keep terminal clean
+        :
+      }
+    '';
   };
 
   # Configure tmux
@@ -730,6 +738,7 @@
     PAGER = "moar";
     TMUXIFIER_LAYOUT_PATH = "${config.home.homeDirectory}/.tmuxifier/layouts";
     PDM_VENV_BACKEND = "venv";
+    DIRENV_LOG_FORMAT = "";
   };
 
   # Symlink tmux scripts and layouts
