@@ -36,6 +36,7 @@
       ripgrep # Fast grep for fzf
       bottom # Modern htop alternative (btm)
       moar # Advanced pager with syntax highlighting
+      eza # Modern ls replacement with colors and icons
       oh-my-zsh
 
       # Development tools
@@ -63,7 +64,7 @@
       direnv # Directory-based environment management
       nix-direnv # Nix integration for direnv
 
-      nodejs
+      nodejs_22
       unzip
 
       ffmpeg
@@ -81,6 +82,8 @@
 
       # Security
       speedtest-cli # Network speed testing tool
+
+      tree
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
       _1password-gui
@@ -252,9 +255,16 @@
 
     shellAliases =
       {
+        # Keep original ls aliases for compatibility
         ll = "ls -alF";
         la = "ls -A";
-        l = "ls -CF";
+        
+        # Modern eza aliases with icons and colors
+        l = "eza --icons --color=always";
+        lt = "eza --icons --color=always --tree --level=2";
+        lll = "eza --icons --color=always --long --git --header";
+        lla = "eza --icons --color=always --long --git --header --all";
+        
         grep = "grep --color=auto";
         fgrep = "fgrep --color=auto";
         egrep = "egrep --color=auto";
@@ -270,6 +280,14 @@
 
         # GitHub PR workflow
         open-current-pr = "~/.config/tmux/scripts/open-current-pr.sh"; # Open current branch's PR in Octo.nvim
+        
+        # Development workflow aliases
+        git-branch-now = "git checkout -b $(date +%Y-%m-%d-%H%M%S)";
+        gbn = "git-branch-now";
+        gh-clone-search = "gh repo clone $(gh s --user=twelvelabs-io)";
+        ghcs = "gh-clone-search";
+        gh-submodule-search = "git submodule add $(gh s --user=twelvelabs-io)";
+        gsms = "gh-submodule-search";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
