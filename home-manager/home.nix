@@ -288,6 +288,7 @@
         ghcs = "gh-clone-search";
         gh-submodule-search = "git submodule add $(gh s --user=twelvelabs-io)";
         gsms = "gh-submodule-search";
+        cli-suggest = "gh copilot suggest";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -313,6 +314,25 @@
 
       # Reduce key timeout for faster mode switching
       export KEYTIMEOUT=1
+
+      # Tmux nuke function - kills server and clears resurrect data
+      tmux-nuke() {
+        if [ -n "$TMUX" ]; then
+          # Running inside tmux - use delayed nuke
+          echo "Scheduling tmux nuke in 3 seconds..."
+          echo "This tmux session will exit now."
+          (sleep 3 && tmux kill-server && rm -rf ~/.tmux/resurrect/* && rm -rf /tmp/tmux-*/default 2>/dev/null && echo "Tmux completely nuked! Start fresh with: tmux") &
+          exit
+        else
+          # Running outside tmux - immediate nuke
+          echo "Nuking all tmux sessions and clearing resurrect data..."
+          tmux kill-server 2>/dev/null || true
+          rm -rf ~/.tmux/resurrect/*
+          rm -rf /tmp/tmux-*/default 2>/dev/null || true
+          rm -rf /tmp/tmux-$(id -u)/default 2>/dev/null || true
+          echo 'Tmux completely nuked! Start fresh with: tmux'
+        fi
+      }
     '';
 
     # Note: Moved dotfiles setup to .zshenv (see below) for better reliability
@@ -757,6 +777,7 @@
     TMUXIFIER_LAYOUT_PATH = "${config.home.homeDirectory}/.tmuxifier/layouts";
     PDM_VENV_BACKEND = "venv";
     DIRENV_LOG_FORMAT = "";
+    GIT_DISCOVERY_ACROSS_FILESYSTEM = "1";
   };
 
   # Symlink tmux scripts and layouts
