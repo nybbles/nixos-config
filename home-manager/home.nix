@@ -57,6 +57,8 @@
       docker
       docker-compose
 
+      duckdb
+
       tmuxifier
       lazygit
 
@@ -79,11 +81,17 @@
 
       # Cloud CLIs
       # awscli3  # AWS CLI v2
+      terraform
+      hcp
 
       # Security
       speedtest-cli # Network speed testing tool
 
       tree
+
+      # Python
+      uv
+      pipx # For installing Python CLI tools in isolated environments
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
       _1password-gui
@@ -258,13 +266,13 @@
         # Keep original ls aliases for compatibility
         ll = "ls -alF";
         la = "ls -A";
-        
+
         # Modern eza aliases with icons and colors
         l = "eza --icons --color=always";
         lt = "eza --icons --color=always --tree --level=2";
         lll = "eza --icons --color=always --long --git --header";
         lla = "eza --icons --color=always --long --git --header --all";
-        
+
         grep = "grep --color=auto";
         fgrep = "fgrep --color=auto";
         egrep = "egrep --color=auto";
@@ -280,7 +288,7 @@
 
         # GitHub PR workflow
         open-current-pr = "~/.config/tmux/scripts/open-current-pr.sh"; # Open current branch's PR in Octo.nvim
-        
+
         # Development workflow aliases
         git-branch-now = "git checkout -b $(date +%Y-%m-%d-%H%M%S)";
         gbn = "git-branch-now";
@@ -289,6 +297,7 @@
         gh-submodule-search = "git submodule add $(gh s --user=twelvelabs-io)";
         gsms = "gh-submodule-search";
         cli-suggest = "gh copilot suggest";
+        anyscale = "uvx anyscale";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -296,7 +305,7 @@
 
     oh-my-zsh = {
       enable = true;
-      plugins = ["git" "sudo" "docker" "z"];
+      plugins = ["git" "sudo" "docker" "z" "aws"];
       theme = "robbyrussell";
     };
 
@@ -304,16 +313,41 @@
       # Ensure that any packages installed by nix do not clobber the Python path
       unset PYTHONPATH
 
-      # Add keybindings for history navigation with ctrl+p and ctrl+n
       # Enable vi mode
       bindkey -v
 
-      # Enable ctrl+p and ctrl+n for history navigation in vi mode
-      bindkey '^P' up-line-or-history
-      bindkey '^N' down-line-or-history
-
       # Reduce key timeout for faster mode switching
       export KEYTIMEOUT=1
+
+      # Emacs-style keybindings in vi insert mode
+      bindkey -M viins '^A' beginning-of-line      # Ctrl+A: beginning of line
+      bindkey -M viins '^E' end-of-line            # Ctrl+E: end of line
+      bindkey -M viins '^K' kill-line              # Ctrl+K: kill to end of line
+      bindkey -M viins '^U' kill-whole-line        # Ctrl+U: kill whole line
+      bindkey -M viins '^W' backward-kill-word     # Ctrl+W: kill word backwards
+      bindkey -M viins '^Y' yank                   # Ctrl+Y: yank (paste)
+      bindkey -M viins '^F' forward-char           # Ctrl+F: forward character
+      bindkey -M viins '^B' backward-char          # Ctrl+B: backward character
+      bindkey -M viins '^D' delete-char            # Ctrl+D: delete character
+      bindkey -M viins '^H' backward-delete-char   # Ctrl+H: backspace
+      bindkey -M viins '^P' up-line-or-history     # Ctrl+P: previous history
+      bindkey -M viins '^N' down-line-or-history   # Ctrl+N: next history
+      # Let fzf handle Ctrl+R for history search
+      # The fzf keybinding will be set up automatically by enableZshIntegration
+      bindkey -M viins '^S' history-incremental-search-forward   # Ctrl+S: forward search
+      # This conflicts with the fzf keybinding to search for files/directories
+      # bindkey -M viins '^T' transpose-chars        # Ctrl+T: transpose characters
+      bindkey -M viins '^L' clear-screen           # Ctrl+L: clear screen
+
+      # Alt-based word movement (emacs-style)
+      bindkey -M viins '^[f' forward-word          # Alt+F: forward word
+      bindkey -M viins '^[b' backward-word         # Alt+B: backward word
+      bindkey -M viins '^[d' kill-word             # Alt+D: kill word forward
+      bindkey -M viins '^[^H' backward-kill-word   # Alt+Backspace: kill word backward
+
+      # Keep vi command mode keybindings intact
+      bindkey -M vicmd 'k' up-line-or-history
+      bindkey -M vicmd 'j' down-line-or-history
 
       # Tmux nuke function - kills server and clears resurrect data
       tmux-nuke() {
@@ -587,18 +621,18 @@
           set -g @catppuccin_flavour 'mocha'
           set -g @catppuccin_window_left_separator ""
           set -g @catppuccin_window_right_separator " "
-          set -g @catppuccin_window_middle_separator " █"
+          set -g @catppuccin_window_middle_separator " │ "
           set -g @catppuccin_window_number_position "right"
           set -g @catppuccin_window_default_fill "number"
           set -g @catppuccin_window_default_text "#W"
           set -g @catppuccin_window_current_fill "number"
           set -g @catppuccin_window_current_text "#W"
-          set -g @catppuccin_status_modules_right "directory user host session"
-          set -g @catppuccin_status_left_separator  " "
+          set -g @catppuccin_status_modules_right "directory session"
+          set -g @catppuccin_status_left_separator  ""
           set -g @catppuccin_status_right_separator ""
           set -g @catppuccin_status_fill "icon"
-          set -g @catppuccin_status_connect_separator "no"
-          set -g @catppuccin_directory_text "#{pane_current_path}"
+          set -g @catppuccin_status_connect_separator "yes"
+          set -g @catppuccin_directory_text "#{b:pane_current_path}"
         '';
       }
 
@@ -644,7 +678,7 @@
           set -g @wk_menu_sessions \
           'Choose "s" "choose-tree -Zs" \
           New "N" "new-session" \
-          Rename "r" "command-prompt -I \"#S\" \"rename-session \\\"%%\\\"\""'
+          Rename "r" "command-prompt -I \"#S\" \"rename-session %%\""'
         '';
       }
 
@@ -758,6 +792,12 @@
       bind-key f run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-session-path.sh"
       bind-key M run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
 
+      # Marked pane operations
+      bind-key m select-pane -m
+      bind-key u select-pane -M
+      bind-key s swap-pane
+      bind-key P move-pane
+
 
       # Enable RGB color
       set -sa terminal-overrides ",*256col*:RGB"
@@ -779,6 +819,11 @@
     DIRENV_LOG_FORMAT = "";
     GIT_DISCOVERY_ACROSS_FILESYSTEM = "1";
   };
+
+  # Add uv tools to PATH
+  home.sessionPath = [
+    "$HOME/.local/bin"
+  ];
 
   # Symlink tmux scripts and layouts
   home.file = {
