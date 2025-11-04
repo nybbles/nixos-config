@@ -673,12 +673,6 @@
 
           # Manually source the init file since autobuild is disabled
           run-shell "tmux source-file ${pkgs.tmuxPlugins.tmux-which-key}/share/tmux-plugins/tmux-which-key/plugin/init.example.tmux"
-
-          # Override the sessions menu to fix the rename command
-          set -g @wk_menu_sessions \
-          'Choose "s" "choose-tree -Zs" \
-          New "N" "new-session" \
-          Rename "r" "command-prompt -I \"#S\" \"rename-session %%\""'
         '';
       }
 
