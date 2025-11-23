@@ -7,12 +7,17 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    themester = {
+      url = "git+file:///Users/nimalan/workbench/themester";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     self,
     nixpkgs,
     home-manager,
+    themester,
     ...
   } @ inputs: let
     # Support both Linux and macOS
@@ -26,7 +31,7 @@
       nimalan = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.${system};
         modules = [
-          (import ./home.nix {username = "nimalan";})
+          (import ./home.nix {username = "nimalan"; themester = themester.packages.${system};})
         ];
       };
     };
