@@ -343,6 +343,11 @@
       # bindkey -M viins '^T' transpose-chars        # Ctrl+T: transpose characters
       bindkey -M viins '^L' clear-screen           # Ctrl+L: clear screen
 
+      # Multi-line command editing (edit in nvim, returns to prompt without executing)
+      autoload -U edit-command-line
+      zle -N edit-command-line
+      bindkey -M viins '^X^E' edit-command-line    # Ctrl+X Ctrl+E: edit command in editor
+
       # Alt-based word movement (emacs-style)
       bindkey -M viins '^[f' forward-word          # Alt+F: forward word
       bindkey -M viins '^[b' backward-word         # Alt+B: backward word
@@ -352,6 +357,38 @@
       # Keep vi command mode keybindings intact
       bindkey -M vicmd 'k' up-line-or-history
       bindkey -M vicmd 'j' down-line-or-history
+
+      # File insertion widget with fzf
+      fzf-file-insert() {
+        local selected
+        selected=$(fd --type f --hidden --follow --exclude .git . | fzf --height 40% --layout=reverse --border --inline-info --preview 'bat --color=always --style=header,grid --line-range :300 {}' 2>/dev/tty)
+        if [[ -n "$selected" ]]; then
+          # Quote the file path if it contains spaces
+          if [[ "$selected" == *" "* ]]; then
+            selected="\"$selected\""
+          fi
+          LBUFFER="$LBUFFER$selected"
+        fi
+        zle redisplay
+      }
+      zle -N fzf-file-insert
+      bindkey -M viins '^[f' fzf-file-insert  # Alt+F: insert file path
+
+      # Directory insertion widget with fzf  
+      fzf-dir-insert() {
+        local selected
+        selected=$(fd --type d --hidden --follow --exclude .git . | fzf --height 40% --layout=reverse --border --inline-info --preview 'eza --icons --color=always --tree --level=2 {}' 2>/dev/tty)
+        if [[ -n "$selected" ]]; then
+          # Quote the directory path if it contains spaces
+          if [[ "$selected" == *" "* ]]; then
+            selected="\"$selected\""
+          fi
+          LBUFFER="$LBUFFER$selected"
+        fi
+        zle redisplay
+      }
+      zle -N fzf-dir-insert
+      bindkey -M viins '^[d' fzf-dir-insert   # Alt+D: insert directory path
 
       # Tmux nuke function - kills server and clears resurrect data
       tmux-nuke() {
@@ -618,27 +655,7 @@
     customPaneNavigationAndResize = true;
 
     plugins = with pkgs; [
-      # Theme - must be first to avoid status bar conflicts
-      {
-        plugin = tmuxPlugins.catppuccin;
-        extraConfig = ''
-          set -g @catppuccin_flavour 'mocha'
-          set -g @catppuccin_window_left_separator ""
-          set -g @catppuccin_window_right_separator " "
-          set -g @catppuccin_window_middle_separator " │ "
-          set -g @catppuccin_window_number_position "right"
-          set -g @catppuccin_window_default_fill "number"
-          set -g @catppuccin_window_default_text "#W"
-          set -g @catppuccin_window_current_fill "number"
-          set -g @catppuccin_window_current_text "#W"
-          set -g @catppuccin_status_modules_right "directory session"
-          set -g @catppuccin_status_left_separator  ""
-          set -g @catppuccin_status_right_separator ""
-          set -g @catppuccin_status_fill "icon"
-          set -g @catppuccin_status_connect_separator "yes"
-          set -g @catppuccin_directory_text "#{b:pane_current_path}"
-        '';
-      }
+      # Note: Theme handled by @themester - no hardcoded theme plugins
 
       # Which-key for tmux - shows available key bindings
       {
@@ -694,23 +711,6 @@
         '';
       }
 
-      # Session persistence - must be after theme
-      {
-        plugin = tmuxPlugins.resurrect;
-        extraConfig = ''
-          set -g @resurrect-strategy-nvim 'session'
-          set -g @resurrect-capture-pane-contents 'on'
-          set -g @resurrect-restore-bash-history 'on'
-        '';
-      }
-
-      {
-        plugin = tmuxPlugins.continuum;
-        extraConfig = ''
-          set -g @continuum-restore 'on'
-          set -g @continuum-save-interval '15'
-        '';
-      }
     ];
 
     extraConfig = ''
@@ -738,6 +738,9 @@
       # Activity monitoring
       setw -g monitor-activity on
       set -g visual-activity off
+
+      # @themester integration - direct sourcing for fast theme switching
+      # The THEMESTER MANAGED SECTION will be injected here by the tmux applicator
 
       # Window navigation
       bind-key -n M-1 select-window -t 1
@@ -866,6 +869,28 @@
     };
   };
 
+  # Create systemd user service for Themester daemon (Linux only) 
+  systemd.user.services.themester-daemon = lib.mkIf (pkgs.stdenv.isLinux && themester != null) {
+    Unit = {
+      Description = "Themester theme switching daemon";
+      After = ["graphical-session.target"];
+      Wants = ["graphical-session.target"];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${themester.themester-daemon}/bin/themester-daemon";
+      Restart = "always";
+      RestartSec = 3;
+      Environment = [
+        "RUST_LOG=info"
+        "XDG_RUNTIME_DIR=%t"
+      ];
+    };
+    Install = {
+      WantedBy = ["default.target"];
+    };
+  };
+
   # Enable the service (Linux only)
   systemd.user.startServices = lib.mkIf pkgs.stdenv.isLinux true;
 
@@ -877,6 +902,26 @@
       ProgramArguments = ["${pkgs.alacritty}/bin/alacritty"];
       RunAtLoad = false;
       KeepAlive = false;
+    };
+  };
+
+  # macOS Launch Agent for Themester daemon  
+  launchd.agents.themester-daemon = lib.mkIf (pkgs.stdenv.isDarwin && themester != null) {
+    enable = true;
+    config = {
+      Label = "com.themester.daemon";
+      ProgramArguments = ["${config.home.homeDirectory}/.nix-profile/bin/themester-daemon"];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${config.home.homeDirectory}/.local/share/themester/themester-daemon.log";
+      StandardErrorPath = "${config.home.homeDirectory}/.local/share/themester/themester-daemon.log";
+      EnvironmentVariables = {
+        RUST_LOG = "info";
+        HOME = config.home.homeDirectory;
+        USER = config.home.username;
+        PATH = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${config.home.homeDirectory}/.nix-profile/bin:/nix/var/nix/profiles/default/bin";
+      };
+      ProcessType = "Background";
     };
   };
 
@@ -981,188 +1026,28 @@
     fi
   '';
 
-  # Automatically clone Themester repository
-  home.activation.cloneThemester = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    export PATH="${pkgs.git}/bin:$PATH"
-    REPO_PATH="$HOME/code/themester"
+  # Note: Themester is now installed via Nix packages above
 
-    # Check GitHub CLI authentication
-    if ! $DRY_RUN_CMD ${pkgs.gh}/bin/gh auth status >/dev/null 2>&1; then
-      echo "⚠️  GitHub CLI authentication required for cloning repositories!"
-      echo "   Please run: gh auth login"
-      echo "   Then retry: home-manager switch"
-      exit 0  # Don't fail the whole activation
-    fi
-
-    if [ ! -d "$REPO_PATH/.git" ]; then
-      echo "Cloning themester repository..."
-      mkdir -p "$HOME/code"
-      $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo clone nybbles/themester "$REPO_PATH" || {
-        echo "Failed to clone themester repository. Please check your GitHub access to private repositories."
-        exit 0  # Don't fail the whole activation
-      }
-    else
-      echo "Themester repository already exists at $REPO_PATH"
-      # Optional: pull latest changes using gh
-      cd "$REPO_PATH" && $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo sync || true
-    fi
-
-    export PATH="${pkgs.git}/bin:${pkgs.rustc}/bin:${pkgs.cargo}/bin:${pkgs.clang}/bin:${pkgs.pkg-config}/bin:$PATH"
-    export CC="${pkgs.clang}/bin/clang"
-    export CXX="${pkgs.clang}/bin/clang++"
-    export PKG_CONFIG_PATH="${pkgs.pkg-config}/lib/pkgconfig:${pkgs.glib.dev}/lib/pkgconfig"
-    export LDFLAGS="-L${pkgs.libiconv}/lib"
-    export CPPFLAGS="-I${pkgs.libiconv}/include"
-    export RUSTFLAGS="-L native=${pkgs.libiconv}/lib"
-
-    # Set up Rust toolchain if needed
-    if ! $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup show 2>/dev/null | grep -q "default toolchain"; then
-      echo "Setting up Rust toolchain..."
-      $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup default stable || {
-        echo "Failed to set up Rust toolchain. Please run manually: rustup default stable"
-      }
-    fi
-
-    # Build themester with cargo if not already built
-    if [ -d "$REPO_PATH" ] && [ -f "$REPO_PATH/Cargo.toml" ] && [ ! -f "$REPO_PATH/target/release/themester" ]; then
-      echo "Building themester with cargo..."
-      cd "$REPO_PATH" && $DRY_RUN_CMD ${pkgs.cargo}/bin/cargo build --release || {
-        echo "Failed to build themester. You may need to run: rustup default stable"
-      }
-    fi
-  '';
-
-  # Install Themester themes
-  home.activation.installThemesterThemes = lib.hm.dag.entryAfter ["cloneThemester"] ''
-    if [ -d "$HOME/code/themester/themes" ]; then
+  # Install Themester themes from the repo
+  home.activation.installThemesterThemes = lib.mkIf (themester != null) (lib.hm.dag.entryAfter ["writeBoundary"] ''
+    THEMESTER_REPO_PATH="${config.home.homeDirectory}/workbench/themester"
+    if [ -d "$THEMESTER_REPO_PATH/themes" ]; then
       echo "Installing Themester themes..."
       mkdir -p "$HOME/.themes/available"
-      $DRY_RUN_CMD cp -r "$HOME/code/themester/themes"/* "$HOME/.themes/available/" || {
+      $DRY_RUN_CMD cp -r "$THEMESTER_REPO_PATH/themes"/* "$HOME/.themes/available/" || {
         echo "Failed to install themes. Please check permissions."
       }
     else
-      echo "Themester themes directory not found, skipping theme installation"
+      echo "Themester themes directory not found at $THEMESTER_REPO_PATH/themes"
     fi
-  '';
+  '');
 
-  # Setup Themester daemon service (Linux and macOS)
-  home.activation.setupThemesterDaemon = lib.hm.dag.entryAfter ["installThemesterThemes"] ''
-        if [ -f "$HOME/code/themester/target/release/themester-daemon" ]; then
-          echo "Setting up Themester daemon..."
-
-          if [[ "$(uname)" == "Linux" ]]; then
-            # Linux: Install systemd service
-            $DRY_RUN_CMD "$HOME/code/themester/target/release/themester" install all || {
-              echo "Failed to install Themester service. Please run manually: themester install all"
-            }
-
-            # Reload systemd and enable service
-            if command -v systemctl >/dev/null 2>&1; then
-              $DRY_RUN_CMD systemctl --user daemon-reload || true
-              $DRY_RUN_CMD systemctl --user enable themester-daemon.service || {
-                echo "Failed to enable Themester daemon. Please run manually: systemctl --user enable themester-daemon.service"
-              }
-            fi
-          elif [[ "$(uname)" == "Darwin" ]]; then
-            # macOS: Setup Launch Agent
-            echo "Setting up Themester daemon for macOS..."
-
-            # Create LaunchAgents directory if it doesn't exist
-            LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
-            $DRY_RUN_CMD mkdir -p "$LAUNCH_AGENTS_DIR"
-
-            # Create Launch Agent plist file
-            PLIST_FILE="$LAUNCH_AGENTS_DIR/com.themester.daemon.plist"
-            $DRY_RUN_CMD cat > "$PLIST_FILE" << 'EOF'
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-        <key>Label</key>
-        <string>com.themester.daemon</string>
-
-        <key>ProgramArguments</key>
-        <array>
-            <string>THEMESTER_DAEMON_PATH</string>
-        </array>
-
-        <key>RunAtLoad</key>
-        <true/>
-
-        <key>KeepAlive</key>
-        <true/>
-
-        <key>StandardOutPath</key>
-        <string>THEMESTER_LOG_PATH</string>
-
-        <key>StandardErrorPath</key>
-        <string>THEMESTER_LOG_PATH</string>
-
-        <key>EnvironmentVariables</key>
-        <dict>
-            <key>RUST_LOG</key>
-            <string>info</string>
-            <key>HOME</key>
-            <string>THEMESTER_HOME_PATH</string>
-            <key>USER</key>
-            <string>THEMESTER_USER</string>
-            <key>PATH</key>
-            <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:THEMESTER_HOME_PATH/.nix-profile/bin:/nix/var/nix/profiles/default/bin</string>
-        </dict>
-
-        <key>ProcessType</key>
-        <string>Background</string>
-    </dict>
-    </plist>
-    EOF
-
-            # Replace placeholders in plist file
-            DAEMON_PATH="$HOME/code/themester/target/release/themester-daemon"
-            LOG_PATH="$HOME/.local/share/themester/themester-daemon.log"
-            HOME_PATH="$HOME"
-            USER_NAME="$(whoami)"
-
-            # Create log directory
-            $DRY_RUN_CMD mkdir -p "$(dirname "$LOG_PATH")"
-
-            # Replace placeholders
-            $DRY_RUN_CMD sed -i.bak "s|THEMESTER_DAEMON_PATH|$DAEMON_PATH|g" "$PLIST_FILE"
-            $DRY_RUN_CMD sed -i.bak "s|THEMESTER_LOG_PATH|$LOG_PATH|g" "$PLIST_FILE"
-            $DRY_RUN_CMD sed -i.bak "s|THEMESTER_HOME_PATH|$HOME_PATH|g" "$PLIST_FILE"
-            $DRY_RUN_CMD sed -i.bak "s|THEMESTER_USER|$USER_NAME|g" "$PLIST_FILE"
-            $DRY_RUN_CMD rm -f "$PLIST_FILE.bak"
-
-            echo "✓ Created Launch Agent: $PLIST_FILE"
-
-            # Unload existing service if running
-            if /bin/launchctl list | grep -q "com.themester.daemon"; then
-              echo "Unloading existing themester daemon..."
-              $DRY_RUN_CMD /bin/launchctl unload "$PLIST_FILE" 2>/dev/null || true
-            fi
-
-            # Load and start the service
-            echo "Loading themester daemon..."
-            $DRY_RUN_CMD /bin/launchctl load "$PLIST_FILE" || {
-              echo "Failed to load themester daemon. Please run manually: /bin/launchctl load $PLIST_FILE"
-            }
-
-            echo "✓ Themester daemon setup complete for macOS"
-            echo "  Log file: $LOG_PATH"
-            echo "  To check status: /bin/launchctl list | grep themester"
-            echo "  To stop: /bin/launchctl unload $PLIST_FILE"
-            echo "  To start: /bin/launchctl load $PLIST_FILE"
-          else
-            echo "Unsupported operating system: $(uname)"
-          fi
-        else
-          echo "Themester daemon binary not found, skipping daemon setup"
-        fi
-  '';
+  # Note: Themester daemon is now managed by systemd/launchd services above
 
   # Create writable themester config with proper symlinks (macOS only)
-  home.activation.createThemesterConfig = lib.mkIf pkgs.stdenv.isDarwin (lib.hm.dag.entryAfter ["writeBoundary"] ''
-            THEMESTER_CONFIG_DIR="$HOME/.config/themester"
-            THEMESTER_APP_SUPPORT_DIR="$HOME/Library/Application Support/themester"
+  home.activation.createThemesterConfig = lib.mkIf (pkgs.stdenv.isDarwin && themester != null) (lib.hm.dag.entryAfter ["writeBoundary"] ''
+            THEMESTER_CONFIG_DIR="${config.home.homeDirectory}/.config/themester"
+            THEMESTER_APP_SUPPORT_DIR="${config.home.homeDirectory}/Library/Application Support/themester"
             THEMESTER_CONFIG="$THEMESTER_CONFIG_DIR/config.toml"
             THEMESTER_APP_SUPPORT_CONFIG="$THEMESTER_APP_SUPPORT_DIR/config.toml"
 
