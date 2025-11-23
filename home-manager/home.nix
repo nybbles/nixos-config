@@ -1,4 +1,4 @@
-{username}: {
+{username, themester ? null}: {
   config,
   pkgs,
   lib,
@@ -25,6 +25,11 @@
   # User packages
   home.packages = with pkgs;
     [
+      # Themester theme management (only if available)
+    ] ++ lib.optionals (themester != null) [
+      themester.themester        # CLI tool  
+      themester.themester-daemon # Daemon
+    ] ++ [
       git
       # Terminal and CLI tools
       alacritty # Terminal emulator with writable config for theme switching
@@ -278,8 +283,7 @@
         egrep = "egrep --color=auto";
         cd = "z"; # Use zoxide instead of cd
         home-switch = "home-manager switch --flake ~/.config/home-manager#nimalan";
-        themester = "~/code/themester/target/release/themester"; # Themester theme manager
-        themester-daemon = "~/code/themester/target/release/themester-daemon"; # Themester daemon
+        # Note: themester and themester-daemon are now installed as packages above
 
         # Nix formatting aliases
         nix-format = "alejandra ."; # Format all nix files in current directory
