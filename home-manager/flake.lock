@@ -84,11 +84,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1763891417,
-        "narHash": "sha256-Mdb0bsCW3WcOH2oRUR6TE8m6a3ml824/P0jOhPHuAeE=",
+        "lastModified": 1763896678,
+        "narHash": "sha256-K4yUpKAZtw98/xdY/FsFXUxsOfn2zaLVMemA47nzBdQ=",
         "ref": "refs/heads/nybbles/mac-os",
-        "rev": "6225e15c19aea5f0283bec39e226e2fb4e3e92e2",
-        "revCount": 78,
+        "rev": "8fc642be7755c0f0f4fcdf65323f5eb74aebdfdb",
+        "revCount": 79,
         "type": "git",
         "url": "file:///Users/nimalan/workbench/themester"
       },

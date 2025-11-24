@@ -121,8 +121,6 @@
       # gnomeExtensions.just-perfection
       # gnomeExtensions.blur-my-shell
       # gnomeExtensions.gsconnect
-
-      kanata
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
       # macOS-specific packages can go here if needed
@@ -419,185 +417,6 @@
     enableZshIntegration = true;
   };
 
-  # Create oh-my-posh config file with proper Unicode via Home Manager file management
-  home.file.".config/oh-my-posh/config.json".text = ''
-    {
-      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-      "version": 3,
-      "final_space": true,
-      "console_title_template": "{{ .Folder }}",
-      "transient_prompt": {
-        "template": "❯ ",
-        "foreground": "#a6e3a1",
-        "background": "transparent"
-      },
-      "blocks": [
-        {
-          "type": "prompt",
-          "alignment": "left",
-          "segments": [
-            {
-              "type": "text",
-              "style": "plain",
-              "template": "╭─",
-              "foreground": "#89b4fa"
-            },
-            {
-              "type": "vi",
-              "style": "diamond",
-              "leading_diamond": "\ue0b6",
-              "trailing_diamond": "\ue0b4",
-              "template": " {{ .String }} ",
-              "foreground": "#1e1e2e",
-              "background": "#a6e3a1",
-              "background_templates": [
-                "{{ if eq .String \"NORMAL\" }}#f9e2af{{ end }}"
-              ],
-              "properties": {
-                "vi_insert_prompt": "INSERT",
-                "vi_cmd_prompt": "NORMAL"
-              }
-            },
-            {
-              "type": "text",
-              "style": "plain",
-              "template": "   ",
-              "foreground": "transparent"
-            },
-            {
-              "type": "session",
-              "style": "diamond",
-              "leading_diamond": "\ue0b6",
-              "trailing_diamond": "\ue0b4",
-              "template": " {{ .HostName }} ",
-              "foreground": "#cdd6f4",
-              "background": "#89b4fa"
-            },
-            {
-              "type": "text",
-              "style": "plain",
-              "template": "   ",
-              "foreground": "transparent"
-            },
-            {
-              "type": "path",
-              "style": "diamond",
-              "leading_diamond": "\ue0b6",
-              "trailing_diamond": "\ue0b4",
-              "template": " 📁 {{ path .Path .Location }} ",
-              "foreground": "#1e1e2e",
-              "background": "#fab387",
-              "properties": {
-                "style": "agnoster",
-                "max_depth": 3,
-                "folder_separator_icon": "/"
-              }
-            },
-            {
-              "type": "text",
-              "style": "plain",
-              "template": "   ",
-              "foreground": "transparent"
-            },
-            {
-              "type": "git",
-              "style": "diamond",
-              "leading_diamond": "\ue0b6",
-              "trailing_diamond": "\ue0b4",
-              "template": " 🌿 {{ .HEAD }}{{ if .Working.Changed }} ⚡{{ .Working.String }}{{ end }}{{ if .Staging.Changed }} ➕{{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} 📦{{ .StashCount }}{{ end }} ",
-              "foreground": "#1e1e2e",
-              "background": "#94e2d5",
-              "background_templates": [
-                "{{ if or (.Working.Changed) (.Staging.Changed) }}#f9e2af{{ end }}",
-                "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#f38ba8{{ end }}",
-                "{{ if gt .Ahead 0 }}#cba6f7{{ end }}",
-                "{{ if gt .Behind 0 }}#cba6f7{{ end }}"
-              ],
-              "properties": {
-                "fetch_stash_count": true,
-                "fetch_status": true,
-                "fetch_upstream_icon": true
-              }
-            }
-          ]
-        },
-        {
-          "type": "prompt",
-          "alignment": "right",
-          "overflow": "break",
-          "segments": [
-            {
-              "type": "python",
-              "style": "diamond",
-              "leading_diamond": "\ue0b6",
-              "trailing_diamond": "\ue0b4",
-              "template": " 🐍 {{ if .Venv }}({{ .Venv }}) {{ end }}{{ .Major }}.{{ .Minor }} ",
-              "foreground": "#1e1e2e",
-              "background": "#f9e2af"
-            },
-            {
-              "type": "text",
-              "style": "plain",
-              "template": "   ",
-              "foreground": "transparent"
-            },
-            {
-              "type": "node",
-              "style": "diamond",
-              "leading_diamond": "\ue0b6",
-              "trailing_diamond": "\ue0b4",
-              "template": " ⬢ {{ .Major }}.{{ .Minor }} ",
-              "foreground": "#1e1e2e",
-              "background": "#a6e3a1"
-            },
-            {
-              "type": "text",
-              "style": "plain",
-              "template": "   ",
-              "foreground": "transparent"
-            },
-            {
-              "type": "time",
-              "style": "diamond",
-              "leading_diamond": "\ue0b6",
-              "trailing_diamond": "\ue0b4",
-              "template": " 🕐 {{ .CurrentDate | date .Format }} ",
-              "foreground": "#cdd6f4",
-              "background": "#89b4fa",
-              "properties": {
-                "time_format": "15:04"
-              }
-            }
-          ]
-        },
-        {
-          "type": "prompt",
-          "alignment": "left",
-          "newline": true,
-          "segments": [
-            {
-              "type": "text",
-              "style": "plain",
-              "template": "╰─",
-              "foreground": "#89b4fa"
-            },
-            {
-              "type": "status",
-              "style": "plain",
-              "template": "❯ ",
-              "foreground": "#a6e3a1",
-              "foreground_templates": [
-                "{{ if gt .Code 0 }}#f38ba8{{ end }}"
-              ],
-              "properties": {
-                "always_enabled": true
-              }
-            }
-          ]
-        }
-      ]
-    }
-  '';
 
   # Configure Neovim
   programs.neovim = {
@@ -828,6 +647,186 @@
 
   # Symlink tmux scripts and layouts
   home.file = {
+    # Oh-my-posh configuration with proper Unicode
+    ".config/oh-my-posh/config.json".text = ''
+      {
+        "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+        "version": 3,
+        "final_space": true,
+        "console_title_template": "{{ .Folder }}",
+        "transient_prompt": {
+          "template": "❯ ",
+          "foreground": "#a6e3a1",
+          "background": "transparent"
+        },
+        "blocks": [
+          {
+            "type": "prompt",
+            "alignment": "left",
+            "segments": [
+              {
+                "type": "text",
+                "style": "plain",
+                "template": "╭─",
+                "foreground": "#89b4fa"
+              },
+              {
+                "type": "vi",
+                "style": "diamond",
+                "leading_diamond": "\ue0b6",
+                "trailing_diamond": "\ue0b4",
+                "template": " {{ .String }} ",
+                "foreground": "#1e1e2e",
+                "background": "#a6e3a1",
+                "background_templates": [
+                  "{{ if eq .String \"NORMAL\" }}#f9e2af{{ end }}"
+                ],
+                "properties": {
+                  "vi_insert_prompt": "INSERT",
+                  "vi_cmd_prompt": "NORMAL"
+                }
+              },
+              {
+                "type": "text",
+                "style": "plain",
+                "template": "   ",
+                "foreground": "transparent"
+              },
+              {
+                "type": "session",
+                "style": "diamond",
+                "leading_diamond": "\ue0b6",
+                "trailing_diamond": "\ue0b4",
+                "template": " {{ .HostName }} ",
+                "foreground": "#cdd6f4",
+                "background": "#89b4fa"
+              },
+              {
+                "type": "text",
+                "style": "plain",
+                "template": "   ",
+                "foreground": "transparent"
+              },
+              {
+                "type": "path",
+                "style": "diamond",
+                "leading_diamond": "\ue0b6",
+                "trailing_diamond": "\ue0b4",
+                "template": " 📁 {{ path .Path .Location }} ",
+                "foreground": "#1e1e2e",
+                "background": "#fab387",
+                "properties": {
+                  "style": "agnoster",
+                  "max_depth": 3,
+                  "folder_separator_icon": "/"
+                }
+              },
+              {
+                "type": "text",
+                "style": "plain",
+                "template": "   ",
+                "foreground": "transparent"
+              },
+              {
+                "type": "git",
+                "style": "diamond",
+                "leading_diamond": "\ue0b6",
+                "trailing_diamond": "\ue0b4",
+                "template": " 🌿 {{ .HEAD }}{{ if .Working.Changed }} ⚡{{ .Working.String }}{{ end }}{{ if .Staging.Changed }} ➕{{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} 📦{{ .StashCount }}{{ end }} ",
+                "foreground": "#1e1e2e",
+                "background": "#94e2d5",
+                "background_templates": [
+                  "{{ if or (.Working.Changed) (.Staging.Changed) }}#f9e2af{{ end }}",
+                  "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#f38ba8{{ end }}",
+                  "{{ if gt .Ahead 0 }}#cba6f7{{ end }}",
+                  "{{ if gt .Behind 0 }}#cba6f7{{ end }}"
+                ],
+                "properties": {
+                  "fetch_stash_count": true,
+                  "fetch_status": true,
+                  "fetch_upstream_icon": true
+                }
+              }
+            ]
+          },
+          {
+            "type": "prompt",
+            "alignment": "right",
+            "overflow": "break",
+            "segments": [
+              {
+                "type": "python",
+                "style": "diamond",
+                "leading_diamond": "\ue0b6",
+                "trailing_diamond": "\ue0b4",
+                "template": " 🐍 {{ if .Venv }}({{ .Venv }}) {{ end }}{{ .Major }}.{{ .Minor }} ",
+                "foreground": "#1e1e2e",
+                "background": "#f9e2af"
+              },
+              {
+                "type": "text",
+                "style": "plain",
+                "template": "   ",
+                "foreground": "transparent"
+              },
+              {
+                "type": "node",
+                "style": "diamond",
+                "leading_diamond": "\ue0b6",
+                "trailing_diamond": "\ue0b4",
+                "template": " ⬢ {{ .Major }}.{{ .Minor }} ",
+                "foreground": "#1e1e2e",
+                "background": "#a6e3a1"
+              },
+              {
+                "type": "text",
+                "style": "plain",
+                "template": "   ",
+                "foreground": "transparent"
+              },
+              {
+                "type": "time",
+                "style": "diamond",
+                "leading_diamond": "\ue0b6",
+                "trailing_diamond": "\ue0b4",
+                "template": " 🕐 {{ .CurrentDate | date .Format }} ",
+                "foreground": "#cdd6f4",
+                "background": "#89b4fa",
+                "properties": {
+                  "time_format": "15:04"
+                }
+              }
+            ]
+          },
+          {
+            "type": "prompt",
+            "alignment": "left",
+            "newline": true,
+            "segments": [
+              {
+                "type": "text",
+                "style": "plain",
+                "template": "╰─",
+                "foreground": "#89b4fa"
+              },
+              {
+                "type": "status",
+                "style": "plain",
+                "template": "❯ ",
+                "foreground": "#a6e3a1",
+                "foreground_templates": [
+                  "{{ if gt .Code 0 }}#f38ba8{{ end }}"
+                ],
+                "properties": {
+                  "always_enabled": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    '';
+
     ".config/tmux/scripts/fzf-session-path.sh" = {
       source = ../tmux/scripts/fzf-session-path.sh;
       executable = true;
@@ -849,8 +848,6 @@
       executable = true;
     };
 
-    # Kanata keyboard configuration
-    ".config/kanata.kbd".source = ../kanata.kbd;
   };
 
   # Create systemd user service for Kanata (Linux only)
@@ -924,6 +921,7 @@
       ProcessType = "Background";
     };
   };
+
 
   # Create proper macOS application entry
   home.activation.createAlacrittyAppEntry = lib.mkIf pkgs.stdenv.isDarwin (lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -1092,6 +1090,8 @@
               echo "✓ Created symlink from .config to Application Support for themester config"
             fi
   '');
+
+
   # Create writable Alacritty config for theme switching
   home.activation.createAlacrittyConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
         ALACRITTY_CONFIG_DIR="$HOME/.config/alacritty"
