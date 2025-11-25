@@ -94,6 +94,9 @@
 
       tree
 
+      # Keyboard customization
+      kanata # Key remapping tool
+
       # Python
       uv
       pipx # For installing Python CLI tools in isolated environments
@@ -158,6 +161,9 @@
 
     # Use moar as pager for git commands
     extraConfig = {
+      init = {
+        defaultBranch = "main";
+      };
       core = {
         pager = "moar";
         askPass = "";
