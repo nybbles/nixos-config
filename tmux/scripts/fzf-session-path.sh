@@ -13,7 +13,7 @@ if command -v fzf >/dev/null 2>&1; then
         find ~ -maxdepth 2 -type d 2>/dev/null | grep -v '/\.'
         
         # Common development paths
-        find ~/code ~/projects ~/dev ~/work 2>/dev/null -maxdepth 2 -type d | head -10
+        find ~/workbench ~/projects ~/dev ~/work 2>/dev/null -maxdepth 2 -type d | head -10
         
         # Current directory and subdirectories
         find . -maxdepth 2 -type d 2>/dev/null

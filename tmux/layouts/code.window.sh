@@ -2,7 +2,7 @@
 # Tmuxifier window layout for coding workflow
 
 # Set window root path
-window_root "~/code"
+window_root "~/workbench"
 
 # Create new window
 new_window "code"

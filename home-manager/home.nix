@@ -610,13 +610,13 @@
 
       # Additional key bindings from dot-config
       bind t choose-tree
-      bind w run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-window.sh"
+      bind w run-shell "${config.home.homeDirectory}/workbench/nixos-config/tmux/scripts/fzf-window.sh"
       bind -r '<' swap-window -d -t -1
       bind -r '>' swap-window -d -t +1
 
       # Custom key bindings for scripts
-      bind-key f run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/fzf-session-path.sh"
-      bind-key M run-shell "${config.home.homeDirectory}/code/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
+      bind-key f run-shell "${config.home.homeDirectory}/workbench/nixos-config/tmux/scripts/fzf-session-path.sh"
+      bind-key M run-shell "${config.home.homeDirectory}/workbench/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
 
       # Marked pane operations
       bind-key m select-pane -m
@@ -1006,7 +1006,7 @@
   # Automatically clone Neovim config repository
   home.activation.cloneNeovimConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     export PATH="${pkgs.git}/bin:$PATH"
-    REPO_PATH="$HOME/code/config-nvim"
+    REPO_PATH="$HOME/workbench/config-nvim"
 
     # Check GitHub CLI authentication
     if ! $DRY_RUN_CMD ${pkgs.gh}/bin/gh auth status >/dev/null 2>&1; then
@@ -1018,7 +1018,7 @@
 
     if [ ! -d "$REPO_PATH/.git" ]; then
       echo "Cloning neovim config repository..."
-      mkdir -p "$HOME/code"
+      mkdir -p "$HOME/workbench"
       $DRY_RUN_CMD ${pkgs.gh}/bin/gh repo clone nybbles/config-nvim "$REPO_PATH" || {
         echo "Failed to clone repository. Please check your GitHub access."
         exit 0  # Don't fail the whole activation
@@ -1177,7 +1177,7 @@
   xdg.configFile."nvim" = {
     source =
       config.lib.file.mkOutOfStoreSymlink
-      "${config.home.homeDirectory}/code/config-nvim";
+      "${config.home.homeDirectory}/workbench/config-nvim";
     recursive = true;
   };
 }
