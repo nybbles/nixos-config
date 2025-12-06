@@ -1,4 +1,7 @@
-{username, themester ? null}: {
+{
+  username,
+  themester ? null,
+}: {
   config,
   pkgs,
   lib,
@@ -26,10 +29,12 @@
   home.packages = with pkgs;
     [
       # Themester theme management (only if available)
-    ] ++ lib.optionals (themester != null) [
-      themester.themester        # CLI tool  
+    ]
+    ++ lib.optionals (themester != null) [
+      themester.themester # CLI tool
       themester.themester-daemon # Daemon
-    ] ++ [
+    ]
+    ++ [
       git
       # Terminal and CLI tools
       alacritty # Terminal emulator with writable config for theme switching
@@ -286,7 +291,7 @@
         fgrep = "fgrep --color=auto";
         egrep = "egrep --color=auto";
         cd = "z"; # Use zoxide instead of cd
-        home-switch = "home-manager switch --flake ~/.config/home-manager#nimalan";
+        home-switch = "home-manager switch --flake ~/workbench/nixos-config/home-manager#nimalan";
         # Note: themester and themester-daemon are now installed as packages above
 
         # Nix formatting aliases
@@ -304,7 +309,6 @@
         ghcs = "gh-clone-search";
         gh-submodule-search = "git submodule add $(gh s --user=twelvelabs-io)";
         gsms = "gh-submodule-search";
-        cli-suggest = "gh copilot suggest";
         anyscale = "uvx anyscale";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
@@ -320,6 +324,9 @@
     initContent = ''
       # Ensure that any packages installed by nix do not clobber the Python path
       unset PYTHONPATH
+
+      # Disable AUTO_CD to prevent automatic directory changes
+      unsetopt AUTO_CD
 
       # Enable vi mode
       bindkey -v
@@ -378,7 +385,7 @@
       zle -N fzf-file-insert
       bindkey -M viins '^[f' fzf-file-insert  # Alt+F: insert file path
 
-      # Directory insertion widget with fzf  
+      # Directory insertion widget with fzf
       fzf-dir-insert() {
         local selected
         selected=$(fd --type d --hidden --follow --exclude .git . | fzf --height 40% --layout=reverse --border --inline-info --preview 'eza --icons --color=always --tree --level=2 {}' 2>/dev/tty)
@@ -422,7 +429,6 @@
     enable = true;
     enableZshIntegration = true;
   };
-
 
   # Configure Neovim
   programs.neovim = {
@@ -535,7 +541,6 @@
           set -g @fzf-url-bind 'u'
         '';
       }
-
     ];
 
     extraConfig = ''
@@ -853,7 +858,6 @@
       source = ../tmux/layouts/code.window.sh;
       executable = true;
     };
-
   };
 
   # Create systemd user service for Kanata (Linux only)
@@ -872,7 +876,7 @@
     };
   };
 
-  # Create systemd user service for Themester daemon (Linux only) 
+  # Create systemd user service for Themester daemon (Linux only)
   systemd.user.services.themester-daemon = lib.mkIf (pkgs.stdenv.isLinux && themester != null) {
     Unit = {
       Description = "Themester theme switching daemon";
@@ -908,7 +912,7 @@
     };
   };
 
-  # macOS Launch Agent for Themester daemon  
+  # macOS Launch Agent for Themester daemon
   launchd.agents.themester-daemon = lib.mkIf (pkgs.stdenv.isDarwin && themester != null) {
     enable = true;
     config = {
@@ -927,7 +931,6 @@
       ProcessType = "Background";
     };
   };
-
 
   # Create proper macOS application entry
   home.activation.createAlacrittyAppEntry = lib.mkIf pkgs.stdenv.isDarwin (lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -1096,7 +1099,6 @@
               echo "✓ Created symlink from .config to Application Support for themester config"
             fi
   '');
-
 
   # Create writable Alacritty config for theme switching
   home.activation.createAlacrittyConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
