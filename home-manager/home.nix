@@ -317,7 +317,7 @@
 
     oh-my-zsh = {
       enable = true;
-      plugins = ["git" "sudo" "docker" "z" "aws"];
+      plugins = ["git" "sudo" "docker" "aws"];
       theme = "robbyrussell";
     };
 
@@ -341,7 +341,10 @@
       bindkey -M viins '^U' kill-whole-line        # Ctrl+U: kill whole line
       bindkey -M viins '^W' backward-kill-word     # Ctrl+W: kill word backwards
       bindkey -M viins '^Y' yank                   # Ctrl+Y: yank (paste)
-      bindkey -M viins '^F' forward-char           # Ctrl+F: forward character
+      # More intuitive fzf keybindings
+      bindkey '^F' fzf-file-widget      # Ctrl+F for files  
+      bindkey '^G' fzf-cd-widget        # Ctrl+G for directories
+      
       bindkey -M viins '^B' backward-char          # Ctrl+B: backward character
       bindkey -M viins '^D' delete-char            # Ctrl+D: delete character
       bindkey -M viins '^H' backward-delete-char   # Ctrl+H: backspace
