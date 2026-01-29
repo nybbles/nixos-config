@@ -72,7 +72,6 @@
       tmuxifier
       lazygit
 
-      claude-code # Claude CLI
       direnv # Directory-based environment management
       nix-direnv # Nix integration for direnv
 
@@ -103,8 +102,6 @@
       kanata # Key remapping tool
 
       # Python
-      uv
-      pipx # For installing Python CLI tools in isolated environments
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
       _1password-gui
@@ -309,7 +306,6 @@
         ghcs = "gh-clone-search";
         gh-submodule-search = "git submodule add $(gh s --user=twelvelabs-io)";
         gsms = "gh-submodule-search";
-        anyscale = "uvx anyscale";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -324,6 +320,7 @@
     initContent = ''
       # Ensure that any packages installed by nix do not clobber the Python path
       unset PYTHONPATH
+
 
       # Disable AUTO_CD to prevent automatic directory changes
       unsetopt AUTO_CD
@@ -344,7 +341,7 @@
       # More intuitive fzf keybindings
       bindkey '^T' fzf-file-widget      # Ctrl+T for files (fzf default)
       bindkey '^G' fzf-cd-widget        # Ctrl+G for directories
-      
+
       bindkey -M viins '^F' forward-char           # Ctrl+F: forward character
       bindkey -M viins '^B' backward-char          # Ctrl+B: backward character
       bindkey -M viins '^D' delete-char            # Ctrl+D: delete character
@@ -482,7 +479,10 @@
   # Configure tmux
   programs.tmux = {
     enable = true;
-    shell = "${pkgs.zsh}/bin/zsh";
+    shell =
+      if pkgs.stdenv.isDarwin
+      then "/bin/zsh"
+      else "${pkgs.zsh}/bin/zsh";
     terminal = "tmux-256color";
     historyLimit = 100000;
     mouse = true;
@@ -640,6 +640,8 @@
       # Enable undercurl
       set -sa terminal-overrides ',*:Smulx=\E[4::%p1%dm'
       set -sa terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'
+
+      # Note: DEVELOPER_DIR is unset in shell initContent when TMUX is detected
     '';
   };
 
