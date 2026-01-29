@@ -22,6 +22,12 @@
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;
 
+  # Disable manual generation to work around upstream bug where options.json
+  # references store paths without proper context (home-manager#7935)
+  manual.manpages.enable = false;
+  manual.html.enable = false;
+  manual.json.enable = false;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
@@ -496,7 +502,7 @@
       {
         plugin = tmuxPlugins.tmux-which-key;
         extraConfig = ''
-          set -g @tmux-which-key-xdg-enable 'on'
+          set -g @tmux-which-key-xdg-enable '1'
           set -g @tmux-which-key-xdg-open 'open -a "Google Chrome"'
           set -g @tmux-which-key-disable-autoupdate 'on'
 
@@ -908,11 +914,12 @@
   systemd.user.startServices = lib.mkIf pkgs.stdenv.isLinux true;
 
   # macOS Launch Agent for Alacritty shortcut
+  # Note: Use profile path instead of store path to avoid builtins.toFile warning
   launchd.agents.alacritty = lib.mkIf pkgs.stdenv.isDarwin {
     enable = true;
     config = {
       Label = "com.alacritty.shortcut";
-      ProgramArguments = ["${pkgs.alacritty}/bin/alacritty"];
+      ProgramArguments = ["${config.home.homeDirectory}/.nix-profile/bin/alacritty"];
       RunAtLoad = false;
       KeepAlive = false;
     };
