@@ -293,7 +293,8 @@
         grep = "grep --color=auto";
         fgrep = "fgrep --color=auto";
         egrep = "egrep --color=auto";
-        cd = "z"; # Use zoxide instead of cd
+        # cd -> zoxide is handled by zoxide's --cmd cd option
+        z = "cd"; # Keep z as shortcut for zoxide's cd
         home-switch = "home-manager switch --flake ~/workbench/nixos-config/home-manager#nimalan";
         # Note: themester and themester-daemon are now installed as packages above
 
@@ -449,6 +450,7 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+    options = ["--cmd cd"]; # Replace cd with zoxide (avoids broken alias in shell snapshots)
   };
 
   # Configure fzf
