@@ -295,6 +295,7 @@
         egrep = "egrep --color=auto";
         # cd -> zoxide is handled by zoxide's --cmd cd option
         z = "cd"; # Keep z as shortcut for zoxide's cd
+        zi = "cdi"; # Keep zi as shortcut for interactive zoxide
         home-switch = "home-manager switch --flake ~/workbench/nixos-config/home-manager#nimalan";
         # Note: themester and themester-daemon are now installed as packages above
 
