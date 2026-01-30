@@ -527,6 +527,7 @@
             "c": "Create new window",
             "r": "Reload tmux config",
             "t": "Choose tree (sessions/windows)",
+            "Tab": "Extrakto (search pane content)",
             "M": "Move window to position",
             "<": "Swap window left",
             ">": "Swap window right",
@@ -540,6 +541,7 @@
       tmuxPlugins.vim-tmux-navigator
       tmuxPlugins.fzf-tmux-url
       tmuxPlugins.yank
+      tmuxPlugins.extrakto
 
       # Enhanced fuzzy finding
       {
