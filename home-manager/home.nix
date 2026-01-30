@@ -527,8 +527,6 @@
             "c": "Create new window",
             "r": "Reload tmux config",
             "t": "Choose tree (sessions/windows)",
-            "w": "Fuzzy window selector",
-            "f": "Fuzzy session/path selector",
             "M": "Move window to position",
             "<": "Swap window left",
             ">": "Swap window right",
@@ -625,12 +623,10 @@
 
       # Additional key bindings from dot-config
       bind t choose-tree
-      bind w run-shell "${config.home.homeDirectory}/workbench/nixos-config/tmux/scripts/fzf-window.sh"
       bind -r '<' swap-window -d -t -1
       bind -r '>' swap-window -d -t +1
 
       # Custom key bindings for scripts
-      bind-key f run-shell "${config.home.homeDirectory}/workbench/nixos-config/tmux/scripts/fzf-session-path.sh"
       bind-key M run-shell "${config.home.homeDirectory}/workbench/nixos-config/tmux/scripts/move-window-to-position.sh #{q:target}"
 
       # Marked pane operations
@@ -850,16 +846,8 @@
       }
     '';
 
-    ".config/tmux/scripts/fzf-session-path.sh" = {
-      source = ../tmux/scripts/fzf-session-path.sh;
-      executable = true;
-    };
     ".config/tmux/scripts/move-window-to-position.sh" = {
       source = ../tmux/scripts/move-window-to-position.sh;
-      executable = true;
-    };
-    ".config/tmux/scripts/fzf-window.sh" = {
-      source = ../tmux/scripts/fzf-window.sh;
       executable = true;
     };
     ".config/tmux/scripts/open-current-pr.sh" = {
