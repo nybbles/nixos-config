@@ -77,7 +77,7 @@
       duckdb
 
       tmuxifier
-      # lazygit is managed by programs.lazygit below
+      lazygit # Config managed by themester for theme switching
 
       direnv # Directory-based environment management
       nix-direnv # Nix integration for direnv
@@ -208,27 +208,11 @@
     };
   };
 
-  # Configure Lazygit to use delta for diffs
-  programs.lazygit = {
-    enable = true;
-    settings = {
-      git = {
-        paging = {
-          colorArg = "always";
-          pager = "delta --paging=never";
-        };
-      };
-      gui = {
-        # Use nerd font icons
-        nerdFontsVersion = "3";
-        # Dark selection colors for readability (catppuccin-mocha surface colors)
-        theme = {
-          selectedLineBgColor = ["#313244"]; # surface0 - subtle selection
-          selectedRangeBgColor = ["#313244"]; # surface0 - for hunk selection
-        };
-      };
-    };
-  };
+  # Lazygit is installed but NOT configured here - themester manages the config
+  # This allows theme colors (selection, borders, etc.) to switch with other apps
+  # Config location: ~/Library/Application Support/lazygit/config.yml (macOS)
+  #                  ~/.config/lazygit/config.yml (Linux)
+  # Note: lazygit package is in home.packages above
 
   # GNOME configuration (Linux only)
   dconf.settings = lib.mkIf pkgs.stdenv.isLinux {
