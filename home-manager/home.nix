@@ -52,6 +52,7 @@
       ripgrep # Fast grep for fzf
       bottom # Modern htop alternative (btm)
       moar # Advanced pager with syntax highlighting
+      delta # Syntax-highlighting pager for git diffs (themed by themester)
       eza # Modern ls replacement with colors and icons
       oh-my-zsh
 
@@ -76,7 +77,7 @@
       duckdb
 
       tmuxifier
-      lazygit
+      # lazygit is managed by programs.lazygit below
 
       direnv # Directory-based environment management
       nix-direnv # Nix integration for direnv
@@ -167,19 +168,28 @@
   programs.git = {
     enable = true;
 
-    # Use moar as pager for git commands
+    # Use delta for diffs (themed by themester), moar for other paging
     extraConfig = {
       init = {
         defaultBranch = "main";
       };
       core = {
-        pager = "moar";
+        pager = "delta";
         askPass = "";
       };
+      interactive = {
+        diffFilter = "delta --color-only";
+      };
       pager = {
-        diff = "moar";
-        log = "moar";
-        show = "moar";
+        diff = "delta";
+        log = "delta";
+        show = "delta";
+        reflog = "delta";
+        blame = "delta";
+      };
+      # Include themester-managed delta theme config
+      include = {
+        path = "~/.config/delta/delta.gitconfig";
       };
       credential = {
         helper = "${pkgs.gh}/bin/gh auth git-credential";
@@ -193,6 +203,28 @@
       url = {
         "https://github.com/" = {
           insteadOf = "git@github.com:";
+        };
+      };
+    };
+  };
+
+  # Configure Lazygit to use delta for diffs
+  programs.lazygit = {
+    enable = true;
+    settings = {
+      git = {
+        paging = {
+          colorArg = "always";
+          pager = "delta --paging=never";
+        };
+      };
+      gui = {
+        # Use nerd font icons
+        nerdFontsVersion = "3";
+        # Dark selection colors for readability (catppuccin-mocha surface colors)
+        theme = {
+          selectedLineBgColor = ["#313244"]; # surface0 - subtle selection
+          selectedRangeBgColor = ["#313244"]; # surface0 - for hunk selection
         };
       };
     };
@@ -293,9 +325,7 @@
         grep = "grep --color=auto";
         fgrep = "fgrep --color=auto";
         egrep = "egrep --color=auto";
-        # cd -> zoxide is handled by zoxide's --cmd cd option
-        z = "cd"; # Keep z as shortcut for zoxide's cd
-        zi = "cdi"; # Keep zi as shortcut for interactive zoxide
+        # zoxide provides 'z' and 'zi' commands directly (no aliases needed)
         home-switch = "home-manager switch --flake ~/workbench/nixos-config/home-manager#nimalan";
         # Note: themester and themester-daemon are now installed as packages above
 
@@ -448,10 +478,12 @@
   };
 
   # Configure zoxide
+  # Uses default 'z' command instead of replacing 'cd', so:
+  # - Claude Code and scripts can use regular 'cd'
+  # - Interactive shells use 'z' for smart jumping, 'zi' for interactive
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
-    options = ["--cmd cd"]; # Replace cd with zoxide (avoids broken alias in shell snapshots)
   };
 
   # Configure fzf
@@ -863,6 +895,10 @@
 
     # tmux-which-key config with fixed session rename (uses command-prompt)
     ".config/tmux/plugins/tmux-which-key/config.yaml".source = ../tmux/config/tmux-which-key.yaml;
+
+    # Claude Code configuration
+    ".claude/CLAUDE.md".source = ../claude/CLAUDE.md;
+    ".claude/skills/set-window-title/SKILL.md".source = ../claude/skills/set-window-title/SKILL.md;
   };
 
   # Create systemd user service for Kanata (Linux only)
