@@ -339,6 +339,9 @@
         twa = "twig add";
         twl = "twig list";
         twr = "twig remove";
+
+        # claude-tmux - Claude Code session manager
+        ct = "claude-tmux";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -439,6 +442,58 @@
       if command -v twig &> /dev/null; then
         eval "$(twig completion zsh)"
       fi
+
+      # twt - Create worktree + tmux session in one command
+      twt() {
+        if [ -z "$1" ]; then
+          echo "Usage: twt <branch-name>"
+          echo "Creates a worktree with twig and opens it in a new tmux session"
+          return 1
+        fi
+
+        local branch="$1"
+
+        # Create the worktree
+        echo "Creating worktree for: $branch"
+        twig add "$branch" || {
+          echo "Failed to create worktree"
+          return 1
+        }
+
+        # Get the repo root and name
+        local repo_root=$(git rev-parse --show-toplevel)
+        local repo_name=$(basename "$repo_root")
+
+        # Twig creates worktrees in ../<repo-name>-worktree/<branch-sanitized>
+        # Sanitize branch name (replace / with -)
+        local safe_name=$(echo "$branch" | sed 's|/|-|g')
+        local worktree_path="$(dirname "$repo_root")/$repo_name-worktree/$safe_name"
+
+        # Create a session name
+        local session_name="$repo_name-$safe_name"
+
+        # Check if session already exists
+        if tmux has-session -t "$session_name" 2>/dev/null; then
+          echo "Tmux session '$session_name' already exists, switching to it"
+          if [ -n "$TMUX" ]; then
+            tmux switch-client -t "$session_name"
+          else
+            tmux attach -t "$session_name"
+          fi
+          return 0
+        fi
+
+        # Create and switch/attach to the session
+        echo "Creating tmux session: $session_name in $worktree_path"
+        if [ -n "$TMUX" ]; then
+          # Inside tmux - create detached and switch to it
+          tmux new-session -d -s "$session_name" -c "$worktree_path"
+          tmux switch-client -t "$session_name"
+        else
+          # Outside tmux - create and attach
+          tmux new-session -s "$session_name" -c "$worktree_path"
+        fi
+      }
 
       # Tmux nuke function - kills server and clears resurrect data
       tmux-nuke() {
