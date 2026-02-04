@@ -68,6 +68,7 @@
       cursor-cli # Cursor CLI for AI-powered development
 
       tmux
+      coreutils-prefixed # GNU coreutils with 'g' prefix (greadlink, etc) for macOS compatibility
       rustup # includes cargo
 
       # Containerization
@@ -535,6 +536,23 @@
     # To remove plugins: Remove from tpm-plugins.conf, reload config, then Ctrl+a Alt+u
 
     extraConfig = ''
+      # ========================================================================
+      # PATH Configuration
+      # ========================================================================
+      # Ensure ~/.local/bin comes first for GNU coreutils wrappers
+      set-environment -g PATH "$HOME/.local/bin:$PATH"
+
+      # ========================================================================
+      # Load Theme (managed by themester)
+      # ========================================================================
+      # Themester writes theme colors to ~/.tmux.conf
+      # We source it here so themes work, but all other config is below
+      source-file -q ~/.tmux.conf
+
+      # ========================================================================
+      # Base Tmux Configuration
+      # ========================================================================
+
       # Set prefix key to Ctrl-a
       set -g prefix C-a
       unbind C-b
@@ -630,6 +648,27 @@
       set -sa terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'
 
       # Note: DEVELOPER_DIR is unset in shell initContent when TMUX is detected
+
+      # ========================================================================
+      # TPM (Tmux Plugin Manager) Setup
+      # ========================================================================
+      # Plugin declarations (see ~/workbench/nixos-config/tmux/tpm-plugins.conf for details)
+      set -g @plugin 'tmux-plugins/tpm'
+      set -g @plugin 'alexwforsythe/tmux-which-key'
+      set -g @plugin 'christoomey/vim-tmux-navigator'
+      set -g @plugin 'tmux-plugins/tmux-yank'
+      set -g @plugin 'laktak/extrakto'
+      set -g @plugin 'wfxr/tmux-fzf-url'
+      set -g @plugin 'sainnhe/tmux-fzf'
+
+      # Plugin configuration
+      set -g @tmux-which-key-xdg-enable 1
+      set -g @tmux-which-key-disable-autoupdate on
+      set -g @fzf-url-bind 'u'
+
+      # Initialize TPM (MUST be at the very end of tmux configuration)
+      # TPM with XDG enabled installs to ~/.config/tmux/plugins/
+      run '~/.config/tmux/plugins/tpm/tpm'
     '';
   };
 
@@ -832,6 +871,23 @@
       }
     '';
 
+    # GNU coreutils wrappers for macOS compatibility
+    # TPM plugins expect GNU coreutils, but macOS has BSD versions
+    ".local/bin/readlink" = {
+      text = ''
+        #!/usr/bin/env bash
+        exec greadlink "$@"
+      '';
+      executable = true;
+    };
+    ".local/bin/realpath" = {
+      text = ''
+        #!/usr/bin/env bash
+        exec grealpath "$@"
+      '';
+      executable = true;
+    };
+
     ".config/tmux/scripts/move-window-to-position.sh" = {
       source = ../tmux/scripts/move-window-to-position.sh;
       executable = true;
@@ -840,13 +896,12 @@
       source = ../tmux/scripts/open-current-pr.sh;
       executable = true;
     };
+    # tmux-which-key config (TPM with XDG enabled looks here)
+    ".config/tmux/plugins/tmux-which-key/config.yaml".source = ../tmux/config/tmux-which-key.yaml;
     ".tmuxifier/layouts/code.window.sh" = {
       source = ../tmux/layouts/code.window.sh;
       executable = true;
     };
-
-    # tmux-which-key config with fixed session rename (uses command-prompt)
-    ".config/tmux/plugins/tmux-which-key/config.yaml".source = ../tmux/config/tmux-which-key.yaml;
 
     # Claude Code configuration
     ".claude/CLAUDE.md".source = ../claude/CLAUDE.md;

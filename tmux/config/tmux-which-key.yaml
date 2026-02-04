@@ -239,7 +239,7 @@ items:
         command: display-popup -E -w 80% -h 60% "twig clean"
       - name: Sync symlinks
         key: s
-        command: run-shell "twig sync && tmux display-message 'Worktree symlinks synced'"
+        command: run-shell "twig sync"
   - separator: true
   - name: Claude (M-c)
     key: A
