@@ -222,25 +222,6 @@ items:
       - name: Rename
         key: r
         command: command-prompt -I "#S" "rename-session -- '%%'"
-  - name: +Worktrees
-    key: g
-    menu:
-      - name: List
-        key: l
-        command: display-popup -E -w 80% -h 60% "twig list; read -p 'Press Enter to close...'"
-      - name: Add new
-        key: a
-        command: display-popup -E -w 80% -h 60% "twig add"
-      - name: Remove
-        key: d
-        command: display-popup -E -w 80% -h 60% "twig remove"
-      - name: Clean merged
-        key: c
-        command: display-popup -E -w 80% -h 60% "twig clean"
-      - name: Sync symlinks
-        key: s
-        command: run-shell "twig sync"
-  - separator: true
   - name: Claude (M-c)
     key: A
     command: display-popup -E -w 90% -h 80% "claude-tmux"

@@ -1,5 +1,7 @@
-# Twig settings - worktrees stored under repo (default behavior)
+# Twig settings template - copy to .twig/settings.toml when setting up a new project
 default_source = "main"
+# Note: worktrees default to ../<repo-name>-worktree/ (sibling directory)
+# This is intentional - keeps worktrees separate from main repo git status
 init_submodules = true  # Initialize submodules in new worktrees
 
 # Symlinks - files shared across worktrees (Rust, Python, Go focused)

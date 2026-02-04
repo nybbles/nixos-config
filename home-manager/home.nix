@@ -907,6 +907,9 @@
     ".claude/CLAUDE.md".source = ../claude/CLAUDE.md;
     ".claude/skills/set-window-title/SKILL.md".source = ../claude/skills/set-window-title/SKILL.md;
     ".claude/skills/update-nix-hash/SKILL.md".source = ../claude/skills/update-nix-hash/SKILL.md;
+
+    # Twig (git worktree manager) template
+    ".config/twig/settings.toml.template".source = ../twig/settings.toml.template;
   };
 
   # Create systemd user service for Kanata (Linux only)
