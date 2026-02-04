@@ -112,7 +112,6 @@
       # Python
 
       # Claude Code workflow tools
-      claude-tmux # TUI popup for managing Claude Code sessions
       twig # Git worktree + branch management CLI
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
@@ -339,9 +338,6 @@
         twa = "twig add";
         twl = "twig list";
         twr = "twig remove";
-
-        # claude-tmux - Claude Code session manager
-        ct = "claude-tmux";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -647,9 +643,6 @@
       bind-key -n M-8 select-window -t 8
       bind-key -n M-9 select-window -t 9
 
-      # Claude Code session manager popup - Alt+c for instant access
-      bind-key -n M-c display-popup -E -w 90% -h 80% "claude-tmux"
-
       # Pane navigation (vim-style)
       bind h select-pane -L
       bind j select-pane -D
@@ -720,6 +713,9 @@
       set -g @tmux-which-key-xdg-enable 1
       set -g @tmux-which-key-disable-autoupdate on
       set -g @fzf-url-bind 'u'
+
+      # Bind tmux-fzf to Alt+c for quick access (no prefix needed)
+      bind-key -n M-c run-shell -b "$HOME/.config/tmux/plugins/tmux-fzf/main.sh"
 
       # Initialize TPM (MUST be at the very end of tmux configuration)
       # TPM with XDG enabled installs to ~/.config/tmux/plugins/

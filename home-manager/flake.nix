@@ -13,10 +13,6 @@
     };
 
     # Claude Code workflow tools
-    claude-tmux = {
-      url = "github:nielsgroen/claude-tmux";
-      flake = false; # Source only, not a flake
-    };
     twig = {
       url = "github:708u/twig";
       flake = false;
@@ -28,7 +24,6 @@
     nixpkgs,
     home-manager,
     themester,
-    claude-tmux,
     twig,
     ...
   } @ inputs: let
@@ -39,23 +34,8 @@
     # Detect current system
     system = builtins.currentSystem or "aarch64-darwin";
 
-    # Overlay for claude-tmux and twig packages
+    # Overlay for twig package
     overlay = final: prev: {
-      claude-tmux = final.rustPlatform.buildRustPackage {
-        pname = "claude-tmux";
-        version = "unstable";
-        src = inputs.claude-tmux;
-        cargoHash = "sha256-AKBNCHx6Ap6HKddwzxs/qfJhJDE7LdZ/tRKO94ugRkA=";
-
-        # Add OpenSSL for building
-        nativeBuildInputs = with final; [
-          pkg-config
-        ];
-        buildInputs = with final; [
-          openssl
-        ];
-      };
-
       twig = final.buildGoModule {
         pname = "twig";
         version = "unstable";

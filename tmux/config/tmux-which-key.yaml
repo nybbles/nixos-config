@@ -222,9 +222,6 @@ items:
       - name: Rename
         key: r
         command: command-prompt -I "#S" "rename-session -- '%%'"
-  - name: Claude (M-c)
-    key: A
-    command: display-popup -E -w 90% -h 80% "claude-tmux"
   - name: +Client
     key: C
     menu:

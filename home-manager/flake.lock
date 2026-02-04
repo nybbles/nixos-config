@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "claude-tmux": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1768324671,
-        "narHash": "sha256-fNBT3DItgTrO0vKhjAAQ6L6/K9SBpvXEnyNUOq1AP4M=",
-        "owner": "nielsgroen",
-        "repo": "claude-tmux",
-        "rev": "212a5b55cc88e35feb7fd14b4508959a60a625ca",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nielsgroen",
-        "repo": "claude-tmux",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -72,7 +56,6 @@
     },
     "root": {
       "inputs": {
-        "claude-tmux": "claude-tmux",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "themester": "themester",
