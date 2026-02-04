@@ -529,64 +529,10 @@
     keyMode = "vi";
     customPaneNavigationAndResize = true;
 
-    plugins = with pkgs; [
-      # Note: Theme handled by @themester - no hardcoded theme plugins
-
-      # Which-key for tmux - shows available key bindings
-      {
-        plugin = tmuxPlugins.tmux-which-key;
-        extraConfig = ''
-          set -g @tmux-which-key-xdg-enable '1'
-          set -g @tmux-which-key-xdg-open 'open -a "Google Chrome"'
-          set -g @tmux-which-key-disable-autoupdate 'on'
-
-          # Set custom keybinding for tmux-which-key (leader + space)
-          set -g @tmux-which-key-key-binding Space
-
-          # Manually bind Space to which-key (plugin auto-binding sometimes fails)
-          bind-key Space run-shell "${pkgs.tmuxPlugins.tmux-which-key}/share/tmux-plugins/tmux-which-key/which-key.sh"
-
-          # Key descriptions for which-key
-          set -g @tmux-which-key-key-descriptions '
-            "h": "Select left pane",
-            "j": "Select down pane",
-            "k": "Select up pane",
-            "l": "Select right pane",
-            "H": "Resize pane left",
-            "J": "Resize pane down",
-            "K": "Resize pane up",
-            "L": "Resize pane right",
-            "|": "Split window horizontally",
-            "-": "Split window vertically",
-            "c": "Create new window",
-            "r": "Reload tmux config",
-            "t": "Choose tree (sessions/windows)",
-            "Tab": "Extrakto (search pane content)",
-            "M": "Move window to position",
-            "<": "Swap window left",
-            ">": "Swap window right",
-            "Enter": "Enter copy mode",
-            "Space": "Show this help menu",
-            "M-c": "Claude sessions popup (Alt+c)"
-          '
-        '';
-      }
-
-      # Navigation and utilities
-      tmuxPlugins.vim-tmux-navigator
-      tmuxPlugins.fzf-tmux-url
-      tmuxPlugins.yank
-      tmuxPlugins.extrakto
-
-      # Enhanced fuzzy finding
-      {
-        plugin = tmuxPlugins.tmux-fzf;
-        extraConfig = ''
-          # tmux-fzf configuration
-          set -g @fzf-url-bind 'u'
-        '';
-      }
-    ];
+    # Plugins now managed by TPM - see ~/workbench/nixos-config/tmux/tpm-plugins.conf
+    # To install plugins: Ctrl+a I
+    # To update plugins: Ctrl+a U
+    # To remove plugins: Remove from tpm-plugins.conf, reload config, then Ctrl+a Alt+u
 
     extraConfig = ''
       # Set prefix key to Ctrl-a

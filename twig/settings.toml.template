@@ -22,4 +22,7 @@ symlinks = [
 
   # Claude Code
   ".claude",          # Claude config per-project
+
+  # Neovim
+  ".bookmarks",       # bookmarks.nvim database - shared view across worktrees
 ]
