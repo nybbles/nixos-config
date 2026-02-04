@@ -1,0 +1,25 @@
+# Twig settings - worktrees stored under repo (default behavior)
+default_source = "main"
+init_submodules = true  # Initialize submodules in new worktrees
+
+# Symlinks - files shared across worktrees (Rust, Python, Go focused)
+symlinks = [
+  # Environment
+  ".env",
+  ".env.local",
+  ".direnv",
+
+  # Rust
+  "target",           # Compiled artifacts
+
+  # Python
+  ".venv",            # Virtual environment
+  "__pycache__",      # Bytecode cache
+  ".pytest_cache",    # Test cache
+
+  # Go
+  "vendor",           # Vendored dependencies (if used)
+
+  # Claude Code
+  ".claude",          # Claude config per-project
+]

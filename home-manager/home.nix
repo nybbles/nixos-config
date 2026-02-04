@@ -109,6 +109,10 @@
       kanata # Key remapping tool
 
       # Python
+
+      # Claude Code workflow tools
+      claude-tmux # TUI popup for managing Claude Code sessions
+      twig # Git worktree + branch management CLI
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
       _1password-gui
@@ -328,6 +332,12 @@
         ghcs = "gh-clone-search";
         gh-submodule-search = "git submodule add $(gh s --user=twelvelabs-io)";
         gsms = "gh-submodule-search";
+
+        # twig - git worktree manager
+        tw = "twig";
+        twa = "twig add";
+        twl = "twig list";
+        twr = "twig remove";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -423,6 +433,11 @@
       }
       zle -N fzf-dir-insert
       bindkey -M viins '^[d' fzf-dir-insert   # Alt+D: insert directory path
+
+      # twig completions (git worktree manager)
+      if command -v twig &> /dev/null; then
+        eval "$(twig completion zsh)"
+      fi
 
       # Tmux nuke function - kills server and clears resurrect data
       tmux-nuke() {
@@ -548,7 +563,8 @@
             "<": "Swap window left",
             ">": "Swap window right",
             "Enter": "Enter copy mode",
-            "Space": "Show this help menu"
+            "Space": "Show this help menu",
+            "M-c": "Claude sessions popup (Alt+c)"
           '
         '';
       }
@@ -608,6 +624,9 @@
       bind-key -n M-7 select-window -t 7
       bind-key -n M-8 select-window -t 8
       bind-key -n M-9 select-window -t 9
+
+      # Claude Code session manager popup - Alt+c for instant access
+      bind-key -n M-c display-popup -E -w 90% -h 80% "claude-tmux"
 
       # Pane navigation (vim-style)
       bind h select-pane -L
@@ -883,6 +902,7 @@
     # Claude Code configuration
     ".claude/CLAUDE.md".source = ../claude/CLAUDE.md;
     ".claude/skills/set-window-title/SKILL.md".source = ../claude/skills/set-window-title/SKILL.md;
+    ".claude/skills/update-nix-hash/SKILL.md".source = ../claude/skills/update-nix-hash/SKILL.md;
   };
 
   # Create systemd user service for Kanata (Linux only)
