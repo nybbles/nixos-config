@@ -227,7 +227,7 @@ items:
     menu:
       - name: List
         key: l
-        command: display-popup -E -w 80% -h 60% "twig list"
+        command: display-popup -E -w 80% -h 60% "twig list; read -p 'Press Enter to close...'"
       - name: Add new
         key: a
         command: display-popup -E -w 80% -h 60% "twig add"
