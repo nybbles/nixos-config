@@ -543,6 +543,9 @@
           # Set custom keybinding for tmux-which-key (leader + space)
           set -g @tmux-which-key-key-binding Space
 
+          # Manually bind Space to which-key (plugin auto-binding sometimes fails)
+          bind-key Space run-shell "${pkgs.tmuxPlugins.tmux-which-key}/share/tmux-plugins/tmux-which-key/which-key.sh"
+
           # Key descriptions for which-key
           set -g @tmux-which-key-key-descriptions '
             "h": "Select left pane",
