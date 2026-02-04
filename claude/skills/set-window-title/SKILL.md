@@ -21,7 +21,7 @@ First check if running inside tmux by checking if `$TMUX` environment variable i
 **If inside tmux** (`$TMUX` is set):
 
 ```bash
-tmux rename-window "YOUR_TITLE_HERE"
+tmux rename-window -t "$TMUX_PANE" "YOUR_TITLE_HERE"
 ```
 
 **If in a regular terminal** (`$TMUX` is not set):

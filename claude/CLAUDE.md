@@ -12,7 +12,7 @@ Keep the terminal window title updated to help identify this session among multi
 Use the `set-window-title` skill or run:
 ```bash
 # Inside tmux
-tmux rename-window "SHORT DESCRIPTION"
+tmux rename-window -t "$TMUX_PANE" "SHORT DESCRIPTION"
 
 # Regular terminal
 printf '\033]0;SHORT DESCRIPTION\007'
