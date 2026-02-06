@@ -79,6 +79,7 @@
 
       tmuxifier
       lazygit # Config managed by themester for theme switching
+      k9s # Kubernetes TUI - config managed by themester for theme switching
 
       direnv # Directory-based environment management
       nix-direnv # Nix integration for direnv
@@ -217,6 +218,12 @@
   # Config location: ~/Library/Application Support/lazygit/config.yml (macOS)
   #                  ~/.config/lazygit/config.yml (Linux)
   # Note: lazygit package is in home.packages above
+
+  # K9s (Kubernetes TUI) is installed but NOT configured here - themester manages the config
+  # Themester automatically installs theme skins and updates k9s config when themes switch
+  # Config location: ~/.config/k9s/ (respects XDG_CONFIG_HOME)
+  # Skins location: ~/.config/k9s/skins/
+  # Note: k9s package is in home.packages above
 
   # GNOME configuration (Linux only)
   dconf.settings = lib.mkIf pkgs.stdenv.isLinux {
@@ -728,6 +735,12 @@
 
   # Session variables
   home.sessionVariables = {
+    # XDG Base Directory Specification
+    XDG_CONFIG_HOME = "${config.home.homeDirectory}/.config";
+    XDG_DATA_HOME = "${config.home.homeDirectory}/.local/share";
+    XDG_CACHE_HOME = "${config.home.homeDirectory}/.cache";
+    XDG_STATE_HOME = "${config.home.homeDirectory}/.local/state";
+
     EDITOR = "nvim";
     BROWSER = "open -a 'Google Chrome'";
     TERMINAL = "alacritty";
