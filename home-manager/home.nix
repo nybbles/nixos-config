@@ -717,6 +717,9 @@
       # Bind tmux-fzf to Alt+c for quick access (no prefix needed)
       bind-key -n M-c run-shell -b "$HOME/.config/tmux/plugins/tmux-fzf/main.sh"
 
+      # Bind Alt+s to go directly to session switcher (bypasses both menus)
+      bind-key -n M-s run-shell -b "$HOME/.config/tmux/plugins/tmux-fzf/scripts/session.sh switch"
+
       # Initialize TPM (MUST be at the very end of tmux configuration)
       # TPM with XDG enabled installs to ~/.config/tmux/plugins/
       run '~/.config/tmux/plugins/tpm/tpm'
