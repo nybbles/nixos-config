@@ -449,12 +449,10 @@
 
         local branch="$1"
 
-        # Create the worktree
+        # Try to create the worktree (may already exist)
         echo "Creating worktree for: $branch"
-        twig add "$branch" || {
-          echo "Failed to create worktree"
-          return 1
-        }
+        local twig_result=0
+        twig add "$branch" || twig_result=$?
 
         # Get the repo root and name
         local repo_root=$(git rev-parse --show-toplevel)
@@ -464,6 +462,19 @@
         # Sanitize branch name (replace / with -)
         local safe_name=$(echo "$branch" | sed 's|/|-|g')
         local worktree_path="$(dirname "$repo_root")/$repo_name-worktree/$safe_name"
+
+        # Verify the worktree actually exists before creating session
+        if [ ! -d "$worktree_path" ]; then
+          echo "Error: Worktree not found at $worktree_path"
+          echo "The worktree creation may have failed"
+          return 1
+        fi
+
+        if [ $twig_result -eq 0 ]; then
+          echo "✓ Worktree created successfully"
+        else
+          echo "✓ Using existing worktree"
+        fi
 
         # Create a session name
         local session_name="$repo_name-$safe_name"
@@ -489,6 +500,32 @@
           # Outside tmux - create and attach
           tmux new-session -s "$session_name" -c "$worktree_path"
         fi
+      }
+
+      # home-test - Test home-manager config from current worktree
+      home-test() {
+        # Find the git repository root
+        local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+        if [ -z "$repo_root" ]; then
+          echo "Error: Not in a git repository"
+          return 1
+        fi
+
+        # Check if home-manager directory exists
+        if [ ! -d "$repo_root/home-manager" ]; then
+          echo "Error: home-manager directory not found in $repo_root"
+          return 1
+        fi
+
+        # Show what we're doing
+        echo "Testing home-manager config from: $repo_root"
+        local worktree_info=$(git worktree list | grep "$repo_root" | awk '{print $3}')
+        if [ -n "$worktree_info" ]; then
+          echo "Worktree branch: $worktree_info"
+        fi
+
+        # Apply the config from current location
+        home-manager switch --flake "$repo_root/home-manager#nimalan"
       }
 
       # Tmux nuke function - kills server and clears resurrect data
