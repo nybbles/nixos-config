@@ -1,0 +1,39 @@
+[delta]
+    side-by-side = false
+    line-numbers = true
+    navigate = true
+
+    # File header styling
+    file-style = "{{foreground}}" bold
+    file-decoration-style = "{{color4}}" ul
+
+    # Hunk header styling
+    hunk-header-style = "{{color5}}" bold
+    hunk-header-decoration-style = "{{color8}}" box
+
+    # Line number styling
+    line-numbers-left-style = "{{color8}}"
+    line-numbers-right-style = "{{color8}}"
+    line-numbers-minus-style = "{{color1}}"
+    line-numbers-plus-style = "{{color2}}"
+    line-numbers-zero-style = "{{color8}}"
+
+    # Diff styling - additions (green with background)
+    plus-style = "{{color2}}" bold
+    plus-emph-style = "{{color10}}" bold
+    plus-non-emph-style = "{{color2}}"
+
+    # Diff styling - deletions (red with background)
+    minus-style = "{{color1}}" bold
+    minus-emph-style = "{{color9}}" bold
+    minus-non-emph-style = "{{color1}}"
+
+    # Blame styling
+    blame-palette = "{{background}}" "{{color0}}" "{{color8}}"
+    blame-format = "{author:<18} {commit:<8} {timestamp:<15}"
+
+    # Merge conflict styling
+    merge-conflict-begin-symbol = "▼"
+    merge-conflict-end-symbol = "▲"
+    merge-conflict-ours-diff-header-style = "{{color3}}" bold
+    merge-conflict-theirs-diff-header-style = "{{color4}}" bold

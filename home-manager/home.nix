@@ -1,6 +1,5 @@
 {
   username,
-  themester ? null,
 }: {
   config,
   pkgs,
@@ -34,14 +33,8 @@
   # User packages
   home.packages = with pkgs;
     [
-      # Themester theme management (only if available)
-    ]
-    ++ lib.optionals (themester != null) [
-      themester.themester # CLI tool
-      themester.themester-daemon # Daemon
-    ]
-    ++ [
       git
+      wallust # Wallust theme management
       # Terminal and CLI tools
       alacritty # Terminal emulator with writable config for theme switching
       gh # GitHub CLI
@@ -52,7 +45,7 @@
       ripgrep # Fast grep for fzf
       bottom # Modern htop alternative (btm)
       moar # Advanced pager with syntax highlighting
-      delta # Syntax-highlighting pager for git diffs (themed by themester)
+      delta # Syntax-highlighting pager for git diffs (themed by wallust)
       eza # Modern ls replacement with colors and icons
       oh-my-zsh
 
@@ -78,8 +71,8 @@
       duckdb
 
       tmuxifier
-      lazygit # Config managed by themester for theme switching
-      k9s # Kubernetes TUI - config managed by themester for theme switching
+      lazygit # Config managed by wallust for theme switching
+      k9s # Kubernetes TUI - config managed by wallust for theme switching
 
       direnv # Directory-based environment management
       nix-direnv # Nix integration for direnv
@@ -173,7 +166,7 @@
   programs.git = {
     enable = true;
 
-    # Use delta for diffs (themed by themester), moar for other paging
+    # Use delta for diffs (themed by wallust), moar for other paging
     extraConfig = {
       init = {
         defaultBranch = "main";
@@ -192,7 +185,7 @@
         reflog = "delta";
         blame = "delta";
       };
-      # Include themester-managed delta theme config
+      # Include wallust-managed delta theme config
       include = {
         path = "~/.config/delta/delta.gitconfig";
       };
@@ -213,17 +206,46 @@
     };
   };
 
-  # Lazygit is installed but NOT configured here - themester manages the config
-  # This allows theme colors (selection, borders, etc.) to switch with other apps
-  # Config location: ~/Library/Application Support/lazygit/config.yml (macOS)
-  #                  ~/.config/lazygit/config.yml (Linux)
-  # Note: lazygit package is in home.packages above
+  # Configure wallust theme management
+  # Wallust generates configs from templates + color palettes
+  # Note: macOS uses ~/Library/Application Support, Linux uses ~/.config
+  home.file."${
+    if pkgs.stdenv.isDarwin
+    then "Library/Application Support/wallust/wallust.toml"
+    else ".config/wallust/wallust.toml"
+  }".text = ''
+    backend = "full"
+    color_space = "lab"
+    palette = "dark"
 
-  # K9s (Kubernetes TUI) is installed but NOT configured here - themester manages the config
-  # Themester automatically installs theme skins and updates k9s config when themes switch
-  # Config location: ~/.config/k9s/ (respects XDG_CONFIG_HOME)
-  # Skins location: ~/.config/k9s/skins/
-  # Note: k9s package is in home.packages above
+    # Template outputs for each application
+    [templates]
+    alacritty = { template = "alacritty.toml", target = "${
+      if pkgs.stdenv.isDarwin
+      then "~/Library/Application Support/alacritty/alacritty.toml"
+      else "~/.config/alacritty/alacritty.toml"
+    }" }
+    tmux = { template = "tmux.conf", target = "~/.tmux.conf" }
+    k9s = { template = "k9s.yaml", target = "~/.config/k9s/skins/wallust.yaml" }
+    lazygit = { template = "lazygit.yml", target = "~/.config/lazygit/config.yml" }
+    delta = { template = "delta.gitconfig", target = "~/.config/delta/delta.gitconfig" }
+    ohmyposh = { template = "ohmyposh.json", target = "~/.config/oh-my-posh/config.json" }
+    nvim = { template = "wallust.lua", target = "~/.config/nvim/colors/wallust.lua" }
+  '';
+
+  # Symlink wallust templates from our repo
+  # Note: macOS uses ~/Library/Application Support, Linux uses ~/.config
+  home.file."${
+    if pkgs.stdenv.isDarwin
+    then "Library/Application Support/wallust/templates"
+    else ".config/wallust/templates"
+  }".source = ../wallust/templates;
+
+  # Install switch-theme script
+  home.file.".local/bin/switch-theme" = {
+    source = ../scripts/switch-theme.sh;
+    executable = true;
+  };
 
   # GNOME configuration (Linux only)
   dconf.settings = lib.mkIf pkgs.stdenv.isLinux {
@@ -322,7 +344,6 @@
         egrep = "egrep --color=auto";
         # zoxide provides 'z' and 'zi' commands directly (no aliases needed)
         home-switch = "home-manager switch --flake ~/workbench/nixos-config/home-manager#nimalan";
-        # Note: themester and themester-daemon are now installed as packages above
 
         # Nix formatting aliases
         nix-format = "alejandra ."; # Format all nix files in current directory
@@ -345,6 +366,10 @@
         twa = "twig add";
         twl = "twig list";
         twr = "twig remove";
+
+        # Theme management with wallust
+        theme = "switch-theme";
+        theme-list = "switch-theme --list";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -601,9 +626,9 @@
       set-environment -g PATH "$HOME/.local/bin:$PATH"
 
       # ========================================================================
-      # Load Theme (managed by themester)
+      # Load Theme (managed by wallust)
       # ========================================================================
-      # Themester writes theme colors to ~/.tmux.conf
+      # Wallust writes theme colors to ~/.tmux.conf
       # We source it here so themes work, but all other config is below
       source-file -q ~/.tmux.conf
 
@@ -636,8 +661,7 @@
       setw -g monitor-activity on
       set -g visual-activity off
 
-      # @themester integration - direct sourcing for fast theme switching
-      # The THEMESTER MANAGED SECTION will be injected here by the tmux applicator
+      # @wallust integration - theme colors sourced from ~/.tmux.conf above
 
       # Window navigation
       bind-key -n M-1 select-window -t 1
@@ -758,185 +782,7 @@
 
   # Symlink tmux scripts and layouts
   home.file = {
-    # Oh-my-posh configuration with proper Unicode
-    ".config/oh-my-posh/config.json".text = ''
-      {
-        "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-        "version": 3,
-        "final_space": true,
-        "console_title_template": "{{ .Folder }}",
-        "transient_prompt": {
-          "template": "❯ ",
-          "foreground": "#a6e3a1",
-          "background": "transparent"
-        },
-        "blocks": [
-          {
-            "type": "prompt",
-            "alignment": "left",
-            "segments": [
-              {
-                "type": "text",
-                "style": "plain",
-                "template": "╭─",
-                "foreground": "#89b4fa"
-              },
-              {
-                "type": "vi",
-                "style": "diamond",
-                "leading_diamond": "\ue0b6",
-                "trailing_diamond": "\ue0b4",
-                "template": " {{ .String }} ",
-                "foreground": "#1e1e2e",
-                "background": "#a6e3a1",
-                "background_templates": [
-                  "{{ if eq .String \"NORMAL\" }}#f9e2af{{ end }}"
-                ],
-                "properties": {
-                  "vi_insert_prompt": "INSERT",
-                  "vi_cmd_prompt": "NORMAL"
-                }
-              },
-              {
-                "type": "text",
-                "style": "plain",
-                "template": "   ",
-                "foreground": "transparent"
-              },
-              {
-                "type": "session",
-                "style": "diamond",
-                "leading_diamond": "\ue0b6",
-                "trailing_diamond": "\ue0b4",
-                "template": " {{ .HostName }} ",
-                "foreground": "#cdd6f4",
-                "background": "#89b4fa"
-              },
-              {
-                "type": "text",
-                "style": "plain",
-                "template": "   ",
-                "foreground": "transparent"
-              },
-              {
-                "type": "path",
-                "style": "diamond",
-                "leading_diamond": "\ue0b6",
-                "trailing_diamond": "\ue0b4",
-                "template": " 📁 {{ path .Path .Location }} ",
-                "foreground": "#1e1e2e",
-                "background": "#fab387",
-                "properties": {
-                  "style": "agnoster",
-                  "max_depth": 3,
-                  "folder_separator_icon": "/"
-                }
-              },
-              {
-                "type": "text",
-                "style": "plain",
-                "template": "   ",
-                "foreground": "transparent"
-              },
-              {
-                "type": "git",
-                "style": "diamond",
-                "leading_diamond": "\ue0b6",
-                "trailing_diamond": "\ue0b4",
-                "template": " 🌿 {{ .HEAD }}{{ if .Working.Changed }} ⚡{{ .Working.String }}{{ end }}{{ if .Staging.Changed }} ➕{{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} 📦{{ .StashCount }}{{ end }} ",
-                "foreground": "#1e1e2e",
-                "background": "#94e2d5",
-                "background_templates": [
-                  "{{ if or (.Working.Changed) (.Staging.Changed) }}#f9e2af{{ end }}",
-                  "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#f38ba8{{ end }}",
-                  "{{ if gt .Ahead 0 }}#cba6f7{{ end }}",
-                  "{{ if gt .Behind 0 }}#cba6f7{{ end }}"
-                ],
-                "properties": {
-                  "fetch_stash_count": true,
-                  "fetch_status": true,
-                  "fetch_upstream_icon": true
-                }
-              }
-            ]
-          },
-          {
-            "type": "prompt",
-            "alignment": "right",
-            "overflow": "break",
-            "segments": [
-              {
-                "type": "python",
-                "style": "diamond",
-                "leading_diamond": "\ue0b6",
-                "trailing_diamond": "\ue0b4",
-                "template": " 🐍 {{ if .Venv }}({{ .Venv }}) {{ end }}{{ .Major }}.{{ .Minor }} ",
-                "foreground": "#1e1e2e",
-                "background": "#f9e2af"
-              },
-              {
-                "type": "text",
-                "style": "plain",
-                "template": "   ",
-                "foreground": "transparent"
-              },
-              {
-                "type": "node",
-                "style": "diamond",
-                "leading_diamond": "\ue0b6",
-                "trailing_diamond": "\ue0b4",
-                "template": " ⬢ {{ .Major }}.{{ .Minor }} ",
-                "foreground": "#1e1e2e",
-                "background": "#a6e3a1"
-              },
-              {
-                "type": "text",
-                "style": "plain",
-                "template": "   ",
-                "foreground": "transparent"
-              },
-              {
-                "type": "time",
-                "style": "diamond",
-                "leading_diamond": "\ue0b6",
-                "trailing_diamond": "\ue0b4",
-                "template": " 🕐 {{ .CurrentDate | date .Format }} ",
-                "foreground": "#cdd6f4",
-                "background": "#89b4fa",
-                "properties": {
-                  "time_format": "15:04"
-                }
-              }
-            ]
-          },
-          {
-            "type": "prompt",
-            "alignment": "left",
-            "newline": true,
-            "segments": [
-              {
-                "type": "text",
-                "style": "plain",
-                "template": "╰─",
-                "foreground": "#89b4fa"
-              },
-              {
-                "type": "status",
-                "style": "plain",
-                "template": "❯ ",
-                "foreground": "#a6e3a1",
-                "foreground_templates": [
-                  "{{ if gt .Code 0 }}#f38ba8{{ end }}"
-                ],
-                "properties": {
-                  "always_enabled": true
-                }
-              }
-            ]
-          }
-        ]
-      }
-    '';
+    # Note: oh-my-posh config is now managed by wallust (see wallust/templates/ohmyposh.json)
 
     # GNU coreutils wrappers for macOS compatibility
     # TPM plugins expect GNU coreutils, but macOS has BSD versions
@@ -995,29 +841,7 @@
     };
   };
 
-  # Create systemd user service for Themester daemon (Linux only)
-  systemd.user.services.themester-daemon = lib.mkIf (pkgs.stdenv.isLinux && themester != null) {
-    Unit = {
-      Description = "Themester theme switching daemon";
-      After = ["graphical-session.target"];
-      Wants = ["graphical-session.target"];
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = "${themester.themester-daemon}/bin/themester-daemon";
-      Restart = "always";
-      RestartSec = 3;
-      Environment = [
-        "RUST_LOG=info"
-        "XDG_RUNTIME_DIR=%t"
-      ];
-    };
-    Install = {
-      WantedBy = ["default.target"];
-    };
-  };
-
-  # Enable the service (Linux only)
+  # Enable systemd services (Linux only)
   systemd.user.startServices = lib.mkIf pkgs.stdenv.isLinux true;
 
   # macOS Launch Agent for Alacritty shortcut
@@ -1029,26 +853,6 @@
       ProgramArguments = ["${config.home.homeDirectory}/.nix-profile/bin/alacritty"];
       RunAtLoad = false;
       KeepAlive = false;
-    };
-  };
-
-  # macOS Launch Agent for Themester daemon
-  launchd.agents.themester-daemon = lib.mkIf (pkgs.stdenv.isDarwin && themester != null) {
-    enable = true;
-    config = {
-      Label = "com.themester.daemon";
-      ProgramArguments = ["${config.home.homeDirectory}/.nix-profile/bin/themester-daemon"];
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "${config.home.homeDirectory}/.local/share/themester/themester-daemon.log";
-      StandardErrorPath = "${config.home.homeDirectory}/.local/share/themester/themester-daemon.log";
-      EnvironmentVariables = {
-        RUST_LOG = "info";
-        HOME = config.home.homeDirectory;
-        USER = config.home.username;
-        PATH = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${config.home.homeDirectory}/.nix-profile/bin:/nix/var/nix/profiles/default/bin";
-      };
-      ProcessType = "Background";
     };
   };
 
@@ -1153,73 +957,6 @@
     fi
   '';
 
-  # Note: Themester is now installed via Nix packages above
-
-  # Install Themester themes from the repo
-  home.activation.installThemesterThemes = lib.mkIf (themester != null) (lib.hm.dag.entryAfter ["writeBoundary"] ''
-    THEMESTER_REPO_PATH="${config.home.homeDirectory}/workbench/themester"
-    if [ -d "$THEMESTER_REPO_PATH/themes" ]; then
-      echo "Installing Themester themes..."
-      mkdir -p "$HOME/.themes/available"
-      $DRY_RUN_CMD cp -r "$THEMESTER_REPO_PATH/themes"/* "$HOME/.themes/available/" || {
-        echo "Failed to install themes. Please check permissions."
-      }
-    else
-      echo "Themester themes directory not found at $THEMESTER_REPO_PATH/themes"
-    fi
-  '');
-
-  # Note: Themester daemon is now managed by systemd/launchd services above
-
-  # Create writable themester config with proper symlinks (macOS only)
-  home.activation.createThemesterConfig = lib.mkIf (pkgs.stdenv.isDarwin && themester != null) (lib.hm.dag.entryAfter ["writeBoundary"] ''
-            THEMESTER_CONFIG_DIR="${config.home.homeDirectory}/.config/themester"
-            THEMESTER_APP_SUPPORT_DIR="${config.home.homeDirectory}/Library/Application Support/themester"
-            THEMESTER_CONFIG="$THEMESTER_CONFIG_DIR/config.toml"
-            THEMESTER_APP_SUPPORT_CONFIG="$THEMESTER_APP_SUPPORT_DIR/config.toml"
-
-            echo "Setting up Themester config symlinks for macOS..."
-
-            # Create directories if they don't exist
-            $DRY_RUN_CMD mkdir -p "$THEMESTER_CONFIG_DIR"
-            $DRY_RUN_CMD mkdir -p "$THEMESTER_APP_SUPPORT_DIR"
-
-            # If config exists in .config but not in Application Support, copy it there
-            if [ -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
-              $DRY_RUN_CMD cp "$THEMESTER_CONFIG" "$THEMESTER_APP_SUPPORT_CONFIG"
-              echo "✓ Copied existing config to Application Support"
-            fi
-
-            # If config doesn't exist in either location, create default config
-            if [ ! -f "$THEMESTER_CONFIG" ] && [ ! -f "$THEMESTER_APP_SUPPORT_CONFIG" ]; then
-              $DRY_RUN_CMD cat > "$THEMESTER_APP_SUPPORT_CONFIG" << 'EOF'
-    current_theme = "catppuccin-mocha"
-    variant_preference = "auto"
-
-    [applications.tmux]
-    enabled = true
-
-    [applications.neovim]
-    enabled = true
-
-    [applications.alacritty]
-    enabled = true
-
-    [applications.ohmyposh]
-    enabled = true
-    EOF
-              echo "✓ Created default themester config in Application Support"
-            fi
-
-            # Create symlink from .config to Application Support
-            # This ensures both the CLI and daemon use the same config file on macOS
-            if [ ! -L "$THEMESTER_CONFIG" ]; then
-              $DRY_RUN_CMD rm -f "$THEMESTER_CONFIG"
-              $DRY_RUN_CMD ln -sf "$THEMESTER_APP_SUPPORT_CONFIG" "$THEMESTER_CONFIG"
-              echo "✓ Created symlink from .config to Application Support for themester config"
-            fi
-  '');
-
   # Create writable Alacritty config for theme switching
   home.activation.createAlacrittyConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
         ALACRITTY_CONFIG_DIR="$HOME/.config/alacritty"
@@ -1233,20 +970,11 @@
         $DRY_RUN_CMD mkdir -p "$ALACRITTY_CONFIG_DIR"
         $DRY_RUN_CMD mkdir -p "$ALACRITTY_APP_SUPPORT_DIR"
 
-        # Check if Application Support config exists and has theme data
-        if [ -f "$ALACRITTY_APP_SUPPORT_CONFIG" ] && grep -q "themester_managed" "$ALACRITTY_APP_SUPPORT_CONFIG" 2>/dev/null; then
-          echo "Found existing themed config in Application Support"
-          # Copy it to .config if .config doesn't have theme data
-          if [ ! -f "$ALACRITTY_CONFIG" ] || ! grep -q "themester_managed" "$ALACRITTY_CONFIG" 2>/dev/null; then
-            $DRY_RUN_CMD cp "$ALACRITTY_APP_SUPPORT_CONFIG" "$ALACRITTY_CONFIG"
-            echo "✓ Copied themed config to $ALACRITTY_CONFIG"
-          fi
-        else
-          # Create basic config file if it doesn't exist
-          if [ ! -f "$ALACRITTY_CONFIG" ]; then
-            $DRY_RUN_CMD cat > "$ALACRITTY_CONFIG" << 'EOF'
+        # Create basic config file if it doesn't exist (wallust will add colors)
+        if [ ! -f "$ALACRITTY_APP_SUPPORT_CONFIG" ]; then
+          $DRY_RUN_CMD cat > "$ALACRITTY_APP_SUPPORT_CONFIG" << 'EOF'
     # Alacritty Configuration
-    # Basic configuration only - colors managed by Themester
+    # Basic configuration only - colors managed by wallust
 
     [general]
     ipc_socket = true
@@ -1274,24 +1002,9 @@
     x = 6
     y = 6
 
-    # Colors will be added here by Themester when themes are applied
+    # Colors will be added here by wallust when themes are applied
     EOF
-            echo "✓ Created basic Alacritty config at $ALACRITTY_CONFIG"
-          fi
-
-          # Copy to Application Support if it doesn't exist there
-          if [ ! -f "$ALACRITTY_APP_SUPPORT_CONFIG" ]; then
-            $DRY_RUN_CMD cp "$ALACRITTY_CONFIG" "$ALACRITTY_APP_SUPPORT_CONFIG"
-            echo "✓ Copied config to Application Support"
-          fi
-        fi
-
-        # Create symlink from .config to Application Support to keep them in sync
-        # This way themester can update Application Support and .config will reflect changes
-        if [ ! -L "$ALACRITTY_CONFIG" ]; then
-          $DRY_RUN_CMD rm -f "$ALACRITTY_CONFIG"
-          $DRY_RUN_CMD ln -sf "$ALACRITTY_APP_SUPPORT_CONFIG" "$ALACRITTY_CONFIG"
-          echo "✓ Created symlink from .config to Application Support"
+          echo "✓ Created basic Alacritty config at $ALACRITTY_APP_SUPPORT_CONFIG"
         fi
   '';
 

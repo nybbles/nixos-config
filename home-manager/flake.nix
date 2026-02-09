@@ -7,11 +7,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    themester = {
-      url = "git+file:///Users/nimalan/workbench/themester";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Claude Code workflow tools
     twig = {
       url = "github:708u/twig";
@@ -23,7 +18,6 @@
     self,
     nixpkgs,
     home-manager,
-    themester,
     twig,
     ...
   } @ inputs: let
@@ -64,7 +58,7 @@
       nimalan = home-manager.lib.homeManagerConfiguration {
         pkgs = pkgsWithOverlay;
         modules = [
-          (import ./home.nix {username = "nimalan"; themester = themester.packages.${system};})
+          (import ./home.nix {username = "nimalan";})
         ];
       };
     };
