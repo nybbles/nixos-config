@@ -471,22 +471,16 @@
         eval "$(twig completion zsh)"
       fi
 
-      # twt - Create worktree + tmux session in one command
+      # twt - Create worktree + tmux session (or just session if worktree exists)
       twt() {
         if [ -z "$1" ]; then
           echo "Usage: twt <branch-name>"
           echo "Creates a worktree with twig and opens it in a new tmux session"
+          echo "If the worktree already exists, just creates/switches to the session"
           return 1
         fi
 
         local branch="$1"
-
-        # Create the worktree
-        echo "Creating worktree for: $branch"
-        twig add "$branch" || {
-          echo "Failed to create worktree"
-          return 1
-        }
 
         # Get the repo root and name
         local repo_root=$(git rev-parse --show-toplevel)
@@ -496,6 +490,18 @@
         # Sanitize branch name (replace / with -)
         local safe_name=$(echo "$branch" | sed 's|/|-|g')
         local worktree_path="$(dirname "$repo_root")/$repo_name-worktree/$safe_name"
+
+        # Check if worktree already exists
+        if [ ! -d "$worktree_path" ]; then
+          # Create the worktree
+          echo "Creating worktree for: $branch"
+          twig add "$branch" || {
+            echo "Failed to create worktree"
+            return 1
+          }
+        else
+          echo "Worktree already exists at: $worktree_path"
+        fi
 
         # Create a session name
         local session_name="$repo_name-$safe_name"
