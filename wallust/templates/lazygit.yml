@@ -35,4 +35,4 @@ gui:
 git:
   paging:
     colorArg: always
-    pager: delta --paging=never
+    pager: ""  # Empty - LazyGit has its own diff viewer

@@ -45,7 +45,7 @@
       ripgrep # Fast grep for fzf
       bottom # Modern htop alternative (btm)
       moar # Advanced pager with syntax highlighting
-      delta # Syntax-highlighting pager for git diffs (themed by wallust)
+      diff-so-fancy # Good-looking diffs filter (themed via git colors)
       eza # Modern ls replacement with colors and icons
       oh-my-zsh
 
@@ -166,28 +166,21 @@
   programs.git = {
     enable = true;
 
-    # Use delta for diffs (themed by wallust), moar for other paging
+    # Use diff-so-fancy for diffs (themed via wallust-generated git colors)
     extraConfig = {
       init = {
         defaultBranch = "main";
       };
       core = {
-        pager = "delta";
+        pager = "diff-so-fancy | less --tabs=4 -RFX";
         askPass = "";
       };
       interactive = {
-        diffFilter = "delta --color-only";
+        diffFilter = "diff-so-fancy --patch";
       };
-      pager = {
-        diff = "delta";
-        log = "delta";
-        show = "delta";
-        reflog = "delta";
-        blame = "delta";
-      };
-      # Include wallust-managed delta theme config
+      # Include wallust-managed diff-so-fancy color config
       include = {
-        path = "~/.config/delta/delta.gitconfig";
+        path = "~/.config/git/diff-so-fancy-colors.gitconfig";
       };
       credential = {
         helper = "${pkgs.gh}/bin/gh auth git-credential";
@@ -228,7 +221,7 @@
     tmux = { template = "tmux.conf", target = "~/.tmux.conf" }
     k9s = { template = "k9s.yaml", target = "~/.config/k9s/skins/wallust.yaml" }
     lazygit = { template = "lazygit.yml", target = "~/.config/lazygit/config.yml" }
-    delta = { template = "delta.gitconfig", target = "~/.config/delta/delta.gitconfig" }
+    git-diff-colors = { template = "diff-so-fancy-colors.gitconfig", target = "~/.config/git/diff-so-fancy-colors.gitconfig" }
     ohmyposh = { template = "ohmyposh.json", target = "~/.config/oh-my-posh/config.json" }
     nvim = { template = "wallust.lua", target = "~/.config/nvim/colors/wallust.lua" }
   '';

@@ -1,0 +1,43 @@
+# Wallust-managed color configuration for diff-so-fancy
+# Generated from wallust color palette
+# Colors update automatically when themes switch
+
+[color]
+    ui = true
+
+[color "diff"]
+    # File metadata (blue)
+    meta = "{{color4}}"
+    # Hunk headers (@@ -1,5 +2,6 @@) - magenta bold
+    frag = "{{color5}} bold"
+    # Function context - cyan bold
+    func = "{{color6}} bold"
+    # Commit info - yellow bold
+    commit = "{{color3}} bold"
+    # Removed lines - red bold
+    old = "{{color1}} bold"
+    # Added lines - green bold
+    new = "{{color2}} bold"
+    # Whitespace errors - red reverse
+    whitespace = "{{color1}} reverse"
+
+[color "diff-highlight"]
+    # Within-line change highlighting
+    # Old text (no emphasis)
+    oldNormal = "{{color1}} bold"
+    # Old text (emphasized portion) - bright red
+    oldHighlight = "{{color9}} bold"
+    # New text (no emphasis)
+    newNormal = "{{color2}} bold"
+    # New text (emphasized portion) - bright green
+    newHighlight = "{{color10}} bold"
+
+[diff-so-fancy]
+    # Mark empty lines with subtle indicator
+    markEmptyLines = true
+    # Use arrows/unicode for hunk indicators
+    changeHunkIndicators = true
+    # Remove +/- symbols (cleaner look)
+    stripLeadingSymbols = true
+    # Use unicode ruler for file separators
+    useUnicodeRuler = true
