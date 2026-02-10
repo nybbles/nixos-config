@@ -47,6 +47,7 @@
       moar # Advanced pager with syntax highlighting
       diff-so-fancy # Good-looking diffs filter (themed via git colors)
       eza # Modern ls replacement with colors and icons
+      at # Schedule one-time tasks (for reminders)
       oh-my-zsh
 
       # Development tools
