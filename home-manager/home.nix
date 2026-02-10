@@ -578,13 +578,14 @@
           # Running inside tmux - use delayed nuke
           echo "Scheduling tmux nuke in 3 seconds..."
           echo "This tmux session will exit now."
-          (sleep 3 && tmux kill-server && rm -rf ~/.tmux/resurrect/* && rm -rf /tmp/tmux-*/default 2>/dev/null && echo "Tmux completely nuked! Start fresh with: tmux") &
+          (sleep 3 && tmux kill-server && rm -rf ~/.tmux/resurrect/* ~/.local/share/tmux/resurrect/* && rm -rf /tmp/tmux-*/default 2>/dev/null && echo "Tmux completely nuked! Start fresh with: tmux") &
           exit
         else
           # Running outside tmux - immediate nuke
           echo "Nuking all tmux sessions and clearing resurrect data..."
           tmux kill-server 2>/dev/null || true
           rm -rf ~/.tmux/resurrect/*
+          rm -rf ~/.local/share/tmux/resurrect/*
           rm -rf /tmp/tmux-*/default 2>/dev/null || true
           rm -rf /tmp/tmux-$(id -u)/default 2>/dev/null || true
           echo 'Tmux completely nuked! Start fresh with: tmux'
@@ -788,6 +789,8 @@
       set -g @plugin 'laktak/extrakto'
       set -g @plugin 'wfxr/tmux-fzf-url'
       set -g @plugin 'sainnhe/tmux-fzf'
+      set -g @plugin 'tmux-plugins/tmux-resurrect'
+      set -g @plugin 'tmux-plugins/tmux-continuum'
 
       # Plugin configuration
       set -g @tmux-which-key-xdg-enable 1
@@ -799,6 +802,21 @@
 
       # Bind Alt+s to go directly to session switcher (bypasses both menus)
       bind-key -n M-s run-shell -b "$HOME/.config/tmux/plugins/tmux-fzf/scripts/session.sh switch"
+
+      # ========================================================================
+      # Session Persistence (tmux-resurrect + tmux-continuum)
+      # ========================================================================
+      # Resurrect: Core persistence settings
+      set -g @resurrect-dir '~/.local/share/tmux/resurrect'
+      set -g @resurrect-strategy-nvim 'session'
+      set -g @resurrect-capture-pane-contents 'off'  # Disabled for macOS stability
+
+      # Resurrect: Programs to restore (conservative list for reliability)
+      set -g @resurrect-processes 'ssh psql mysql "~npm" "~yarn" "~lazygit" "~k9s" docker'
+
+      # Continuum: Automatic save/restore
+      set -g @continuum-restore 'on'
+      set -g @continuum-save-interval '15'  # Save every 15 minutes
 
       # Initialize TPM (MUST be at the very end of tmux configuration)
       # TPM with XDG enabled installs to ~/.config/tmux/plugins/
