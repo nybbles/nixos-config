@@ -40,10 +40,18 @@ else
     wallust theme "$INPUT" -s
 fi
 
-# Reload tmux if running
+# Reload tmux and update FZF colors in all panes
 if command -v tmux &>/dev/null && tmux info &>/dev/null 2>&1; then
     echo "Reloading tmux config..."
     tmux source-file ~/.config/tmux/tmux.conf
+
+    # Update FZF colors in tmux environment so all panes get new colors
+    if [ -f ~/.config/fzf/colors.sh ]; then
+        echo "Updating FZF colors in tmux..."
+        # Source the file and extract the FZF_DEFAULT_OPTS value
+        source ~/.config/fzf/colors.sh
+        tmux setenv -g FZF_DEFAULT_OPTS "$FZF_DEFAULT_OPTS"
+    fi
 fi
 
 # Reload Alacritty via IPC socket
