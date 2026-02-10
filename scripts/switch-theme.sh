@@ -52,21 +52,10 @@ if command -v alacritty &>/dev/null; then
     alacritty msg config -r 2>/dev/null || true
 fi
 
-# Update K9s to use wallust skin
-if [ -f "$HOME/.config/k9s/config.yaml" ]; then
-    # Ensure k9s config points to wallust skin
-    if ! grep -q "skin: wallust" "$HOME/.config/k9s/config.yaml" 2>/dev/null; then
-        echo "Updating K9s config to use wallust skin..."
-        # Add or update skin setting
-        if grep -q "^  skin:" "$HOME/.config/k9s/config.yaml"; then
-            sed -i.bak "s/^  skin:.*/  skin: wallust/" "$HOME/.config/k9s/config.yaml"
-        else
-            echo "  skin: wallust" >> "$HOME/.config/k9s/config.yaml"
-        fi
-    fi
-fi
-
 echo "✓ Theme applied successfully"
+echo ""
+echo "Note: K9s config is managed by Nix (skin: wallust is set)"
+echo "      Restart K9s to apply the new theme colors"
 echo ""
 echo "Note: Restart Neovim to apply new theme"
 echo "      (Neovim will auto-load theme on next start)"
