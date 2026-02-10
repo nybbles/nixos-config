@@ -51,6 +51,7 @@ if command -v tmux &>/dev/null && tmux info &>/dev/null 2>&1; then
         # Source the file and extract the FZF_DEFAULT_OPTS value
         source ~/.config/fzf/colors.sh
         tmux setenv -g FZF_DEFAULT_OPTS "$FZF_DEFAULT_OPTS"
+        # Note: Shells will pick up new FZF_DEFAULT_OPTS automatically via precmd hook
     fi
 fi
 

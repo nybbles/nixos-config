@@ -520,6 +520,19 @@
         source ~/.config/fzf/colors.sh
       fi
 
+      # Update FZF colors from tmux environment before each prompt
+      # This allows theme changes to propagate to existing shells
+      _update_fzf_from_tmux() {
+        if [ -n "$TMUX" ]; then
+          local tmux_fzf_opts=$(tmux show-environment FZF_DEFAULT_OPTS 2>/dev/null | cut -d= -f2-)
+          if [ -n "$tmux_fzf_opts" ] && [ "$tmux_fzf_opts" != "$FZF_DEFAULT_OPTS" ]; then
+            export FZF_DEFAULT_OPTS="$tmux_fzf_opts"
+          fi
+        fi
+      }
+      autoload -U add-zsh-hook
+      add-zsh-hook precmd _update_fzf_from_tmux
+
       # twig completions (git worktree manager)
       if command -v twig &> /dev/null; then
         eval "$(twig completion zsh)"
