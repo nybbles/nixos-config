@@ -295,6 +295,38 @@ local highlights = {
   AlphaButtons = { fg = c.blue },
   AlphaShortcut = { fg = c.yellow },
   AlphaFooter = { fg = c.cyan, italic = true },
+
+  -- Markdown / Markup (Treesitter)
+  ["@markup.heading"] = { fg = c.blue, bold = true },
+  ["@markup.heading.1"] = { fg = c.red, bold = true },
+  ["@markup.heading.2"] = { fg = c.yellow, bold = true },
+  ["@markup.heading.3"] = { fg = c.green, bold = true },
+  ["@markup.heading.4"] = { fg = c.cyan, bold = true },
+  ["@markup.heading.5"] = { fg = c.blue, bold = true },
+  ["@markup.heading.6"] = { fg = c.magenta, bold = true },
+  ["@markup.strong"] = { fg = c.fg, bold = true },
+  ["@markup.italic"] = { fg = c.fg, italic = true },
+  ["@markup.strikethrough"] = { fg = c.bright_black, strikethrough = true },
+  ["@markup.underline"] = { underline = true },
+  ["@markup.link"] = { fg = c.cyan, underline = true },
+  ["@markup.link.label"] = { fg = c.blue },
+  ["@markup.link.url"] = { fg = c.cyan, underline = true },
+  ["@markup.raw"] = { fg = c.green },
+  ["@markup.raw.block"] = { fg = c.green, bg = c.black },
+  ["@markup.quote"] = { fg = c.bright_black, italic = true },
+  ["@markup.list"] = { fg = c.magenta },
+  ["@markup.list.checked"] = { fg = c.green },
+  ["@markup.list.unchecked"] = { fg = c.yellow },
+
+  -- Markdown legacy (for older treesitter versions)
+  ["@text.title"] = { link = "@markup.heading" },
+  ["@text.strong"] = { link = "@markup.strong" },
+  ["@text.emphasis"] = { link = "@markup.italic" },
+  ["@text.underline"] = { link = "@markup.underline" },
+  ["@text.strike"] = { link = "@markup.strikethrough" },
+  ["@text.uri"] = { link = "@markup.link.url" },
+  ["@text.literal"] = { link = "@markup.raw" },
+  ["@text.quote"] = { link = "@markup.quote" },
 }
 
 -- Apply all highlights
