@@ -224,6 +224,7 @@
     git-diff-colors = { template = "diff-so-fancy-colors.gitconfig", target = "~/.config/git/diff-so-fancy-colors.gitconfig" }
     ohmyposh = { template = "ohmyposh.json", target = "~/.config/oh-my-posh/config.json" }
     nvim = { template = "wallust.lua", target = "~/.config/nvim/colors/wallust.lua" }
+    fzf = { template = "fzf.sh", target = "~/.config/fzf/colors.sh" }
   '';
 
   # Symlink wallust templates from our repo
@@ -514,6 +515,11 @@
         eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/config.json)"
       fi
 
+      # FZF colors (managed by wallust)
+      if [ -f ~/.config/fzf/colors.sh ]; then
+        source ~/.config/fzf/colors.sh
+      fi
+
       # twig completions (git worktree manager)
       if command -v twig &> /dev/null; then
         eval "$(twig completion zsh)"
@@ -624,17 +630,11 @@
     enableZshIntegration = true;
   };
 
-  # Configure fzf
+  # Configure fzf (colors managed by wallust via sourced file)
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
     defaultCommand = "fd --type f";
-    defaultOptions = [
-      "--height 40%"
-      "--layout=reverse"
-      "--border"
-      "--inline-info"
-    ];
     historyWidgetOptions = [
       "--sort"
       "--exact"
