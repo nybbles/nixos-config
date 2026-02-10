@@ -76,11 +76,11 @@ local syntax = {
 }
 
 local ui = {
-  selection = c.bright_black,
+  selection = c.black,  -- Use lighter background for selections
   menu_selection = c.blue,
-  visual = c.bright_black,
+  visual = c.black,  -- Use lighter background for visual mode
   cursorline = c.black,
-  pmenu = c.bright_black,
+  pmenu = c.black,  -- Use lighter background for popup menus
   float = c.black,
   border = c.bright_black,
   diff_add = c.green,
@@ -312,7 +312,7 @@ local highlights = {
   ["@markup.link.label"] = { fg = c.blue },
   ["@markup.link.url"] = { fg = c.cyan, underline = true },
   ["@markup.raw"] = { fg = c.green },
-  ["@markup.raw.block"] = { fg = c.green, bg = c.black },
+  ["@markup.raw.block"] = { fg = c.green },  -- No background for better readability
   ["@markup.quote"] = { fg = c.bright_black, italic = true },
   ["@markup.list"] = { fg = c.magenta },
   ["@markup.list.checked"] = { fg = c.green },
