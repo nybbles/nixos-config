@@ -44,10 +44,9 @@
       fd # Fast find for fzf
       ripgrep # Fast grep for fzf
       bottom # Modern htop alternative (btm)
-      moar # Advanced pager with syntax highlighting
+      moor # Advanced pager with syntax highlighting (renamed from moar in v2.0.0)
       diff-so-fancy # Good-looking diffs filter (themed via git colors)
       eza # Modern ls replacement with colors and icons
-      at # Schedule one-time tasks (for reminders)
       oh-my-zsh
 
       # Development tools
@@ -510,6 +509,11 @@
       zle -N fzf-dir-insert
       bindkey -M viins '^[d' fzf-dir-insert   # Alt+D: insert directory path
 
+      # oh-my-posh with custom config (managed by wallust)
+      if command -v oh-my-posh &> /dev/null; then
+        eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/config.json)"
+      fi
+
       # twig completions (git worktree manager)
       if command -v twig &> /dev/null; then
         eval "$(twig completion zsh)"
@@ -597,10 +601,10 @@
     # Note: Moved dotfiles setup to .zshenv (see below) for better reliability
   };
 
-  # Configure oh-my-posh to use external config file
+  # Configure oh-my-posh to use wallust-managed config file
   programs.oh-my-posh = {
     enable = true;
-    enableZshIntegration = true;
+    enableZshIntegration = false; # We'll manually initialize with custom config path
   };
 
   # Configure Neovim
@@ -836,7 +840,7 @@
     EDITOR = "nvim";
     BROWSER = "open -a 'Google Chrome'";
     TERMINAL = "alacritty";
-    PAGER = "moar";
+    PAGER = "moor";
     TMUXIFIER_LAYOUT_PATH = "${config.home.homeDirectory}/.tmuxifier/layouts";
     PDM_VENV_BACKEND = "venv";
     DIRENV_LOG_FORMAT = "";

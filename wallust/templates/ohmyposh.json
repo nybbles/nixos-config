@@ -26,10 +26,10 @@
           "foreground": "{{background}}",
           "background": "{{color2}}",
           "background_templates": [
-            {% raw %}"{{ if or (.Working.Changed) (.Staging.Changed) }}"{% endraw %}"{{color3}}"{% raw %}"{{ end }}"{% endraw %},
-            {% raw %}"{{ if and (gt .Ahead 0) (gt .Behind 0) }}"{% endraw %}"{{color1}}"{% raw %}"{{ end }}"{% endraw %},
-            {% raw %}"{{ if gt .Ahead 0 }}"{% endraw %}"{{color5}}"{% raw %}"{{ end }}"{% endraw %},
-            {% raw %}"{{ if gt .Behind 0 }}"{% endraw %}"{{color9}}"{% raw %}"{{ end }}"{% endraw %}
+            "{% raw %}{{ if or (.Working.Changed) (.Staging.Changed) }}{% endraw %}{{color3}}{% raw %}{{ end }}{% endraw %}",
+            "{% raw %}{{ if and (gt .Ahead 0) (gt .Behind 0) }}{% endraw %}{{color1}}{% raw %}{{ end }}{% endraw %}",
+            "{% raw %}{{ if gt .Ahead 0 }}{% endraw %}{{color5}}{% raw %}{{ end }}{% endraw %}",
+            "{% raw %}{{ if gt .Behind 0 }}{% endraw %}{{color9}}{% raw %}{{ end }}{% endraw %}"
           ],
           "template": {% raw %}" {{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uF044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uF046 {{ .Staging.String }}{{ end }} "{% endraw %},
           "properties": {
