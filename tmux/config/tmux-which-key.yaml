@@ -85,6 +85,9 @@ items:
           - name: Vertical main
             key: V
             command: selectl main-vertical
+          - name: Even
+            key: e
+            command: selectl -E
       - name: Split horizontal
         key: /
         command: "splitw -h -c #{pane_current_path}"

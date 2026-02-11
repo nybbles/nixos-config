@@ -88,3 +88,53 @@ This system uses multiple package managers strategically, each for its strengths
 - Plugin authors test against TPM, not Nix
 
 **Best practice:** Use Nix for the foundation (tmux itself), use TPM for the extensions (plugins).
+
+## Home Manager Configuration Management
+
+**IMPORTANT:** Most configuration files in this repository are managed by home-manager, which means:
+
+### Files that require home-manager rebuild:
+
+When you edit these files, changes will NOT take effect until you run `home-manager switch`:
+
+- **Dotfiles and config files** symlinked via `home.file` in `home-manager/home.nix`
+  - Examples: `~/.config/tmux/plugins/tmux-which-key/config.yaml`, various shell scripts
+  - These are symlinked to read-only locations in `/nix/store/`
+
+- **Program configurations** defined in home-manager modules
+  - Examples: Git config, shell aliases, environment variables
+  - Changes to `home-manager/home.nix` require rebuild to apply
+
+- **Nix-managed packages** declared in `home.packages`
+  - Adding/removing packages requires rebuild
+
+### How to apply home-manager changes:
+
+```bash
+cd ~/workbench/nixos-config/home-manager
+home-manager switch --flake .
+```
+
+Or use the shorthand if you have it aliased:
+```bash
+home-switch
+```
+
+### Files that DON'T require rebuild:
+
+- **Plugin-managed configurations** (TPM plugins, neovim plugins)
+  - These update through their own plugin managers
+
+- **Dynamic runtime files** not managed by home-manager
+  - Examples: `~/.local/`, `~/.cache/`, session-specific files
+
+### Troubleshooting:
+
+**"I edited a config file but changes don't appear"**
+1. Check if the file is a symlink to `/nix/store/`: `ls -la <file>`
+2. If it is, you need to run `home-manager switch`
+3. After rebuild, reload the relevant application (e.g., `tmux source-file ~/.config/tmux/tmux.conf`)
+
+**"How do I know if a file is managed by home-manager?"**
+- Check if it's defined in `home-manager/home.nix` under `home.file` or program-specific options
+- Check if it's a symlink pointing to `/nix/store/`
