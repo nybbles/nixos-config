@@ -73,6 +73,7 @@
       tmuxifier
       lazygit # Config managed by wallust for theme switching
       k9s # Kubernetes TUI - config managed by Nix, skin managed by wallust
+      argocd # GitOps continuous delivery tool for Kubernetes
 
       direnv # Directory-based environment management
       nix-direnv # Nix integration for direnv
@@ -92,7 +93,7 @@
 
       # Cloud CLIs
       # awscli3  # AWS CLI v2
-      terraform
+      tenv # Modern Terraform/OpenTofu version manager (replaces tfenv)
       hcp
 
       # Security

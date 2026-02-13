@@ -76,12 +76,12 @@ local syntax = {
 }
 
 local ui = {
-  selection = c.black,  -- Use lighter background for selections
+  selection = c.bright_black,  -- Use contrasting background for selections
   menu_selection = c.blue,
-  visual = c.black,  -- Use lighter background for visual mode
-  cursorline = c.black,
-  pmenu = c.black,  -- Use lighter background for popup menus
-  float = c.black,
+  visual = c.bright_black,  -- Use contrasting background for visual mode
+  cursorline = c.bright_black,  -- Use contrasting background for cursor line
+  pmenu = c.bright_black,  -- Use contrasting background for popup menus
+  float = c.bright_black,  -- Use contrasting background for floating windows
   border = c.bright_black,
   diff_add = c.green,
   diff_change = c.yellow,
@@ -327,6 +327,16 @@ local highlights = {
   ["@text.uri"] = { link = "@markup.link.url" },
   ["@text.literal"] = { link = "@markup.raw" },
   ["@text.quote"] = { link = "@markup.quote" },
+
+  -- Render-markdown plugin highlights
+  RenderMarkdownCode = { bg = c.black },  -- Subtle background for code blocks
+  RenderMarkdownCodeInline = { fg = c.green, italic = true },
+  RenderMarkdownH1Bg = { bg = c.black },
+  RenderMarkdownH2Bg = { bg = c.black },
+  RenderMarkdownH3Bg = { bg = c.black },
+  RenderMarkdownH4Bg = { bg = c.black },
+  RenderMarkdownH5Bg = { bg = c.black },
+  RenderMarkdownH6Bg = { bg = c.black },
 }
 
 -- Apply all highlights
