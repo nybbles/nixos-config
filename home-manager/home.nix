@@ -415,6 +415,9 @@
         # Theme management with wallust
         theme = "switch-theme";
         theme-list = "switch-theme --list";
+
+        # Kubernetes
+        k = "kubectl";
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         nix-rebuild = "sudo nixos-rebuild switch --flake /etc/nixos/hosts#framewerk";
@@ -819,8 +822,11 @@
       # Bind tmux-fzf to Alt+c for quick access (no prefix needed)
       bind-key -n M-c run-shell -b "$HOME/.config/tmux/plugins/tmux-fzf/main.sh"
 
-      # Bind Alt+s to go directly to session switcher (bypasses both menus)
-      bind-key -n M-s run-shell -b "$HOME/.config/tmux/plugins/tmux-fzf/scripts/session.sh switch"
+      # Bind Alt+s to go directly to session switcher (sorted by recency)
+      bind-key -n M-s run-shell -b "${config.home.homeDirectory}/.config/tmux/scripts/switch-session-by-recency.sh"
+
+      # Bind Alt+w to search and select windows in CURRENT SESSION ONLY
+      bind-key -n M-w run-shell -b "${config.home.homeDirectory}/.config/tmux/scripts/select-window-current-session.sh"
 
       # ========================================================================
       # Session Persistence (tmux-resurrect + tmux-continuum)
@@ -859,6 +865,9 @@
     PDM_VENV_BACKEND = "venv";
     DIRENV_LOG_FORMAT = "";
     GIT_DISCOVERY_ACROSS_FILESYSTEM = "1";
+
+    # AWS Configuration
+    AWS_PROFILE = "dev";
   };
 
   # Add uv tools to PATH
@@ -893,6 +902,14 @@
     };
     ".config/tmux/scripts/open-current-pr.sh" = {
       source = ../tmux/scripts/open-current-pr.sh;
+      executable = true;
+    };
+    ".config/tmux/scripts/select-window-current-session.sh" = {
+      source = ../tmux/scripts/select-window-current-session.sh;
+      executable = true;
+    };
+    ".config/tmux/scripts/switch-session-by-recency.sh" = {
+      source = ../tmux/scripts/switch-session-by-recency.sh;
       executable = true;
     };
     # tmux-which-key config (TPM with XDG enabled looks here)
