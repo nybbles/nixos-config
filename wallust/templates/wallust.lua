@@ -337,6 +337,32 @@ local highlights = {
   RenderMarkdownH4Bg = { bg = c.black },
   RenderMarkdownH5Bg = { bg = c.black },
   RenderMarkdownH6Bg = { bg = c.black },
+
+  -- Telescope fuzzy finder (kept for compatibility if user switches back)
+  TelescopeBorder = { fg = ui.border, bg = ui.float },
+  TelescopeNormal = { fg = c.fg, bg = ui.float },
+  TelescopePromptNormal = { fg = c.fg, bg = ui.float },
+  TelescopePromptBorder = { fg = ui.border, bg = ui.float },
+  TelescopePromptTitle = { fg = c.bg, bg = c.blue, bold = true },
+  TelescopePreviewTitle = { fg = c.bg, bg = c.green, bold = true },
+  TelescopeResultsTitle = { fg = c.bg, bg = c.magenta, bold = true },
+  TelescopeSelection = { fg = c.fg, bg = ui.selection, bold = true },
+  TelescopeSelectionCaret = { fg = c.blue, bg = ui.selection },
+  TelescopeMultiSelection = { fg = c.magenta, bg = ui.selection },
+  TelescopeMatching = { fg = c.yellow, bold = true },
+
+  -- Snacks.nvim Picker (fuzzy finder - replaces Telescope in AstroNvim v5)
+  SnacksPickerBorder = { fg = ui.border, bg = ui.float },
+  SnacksPicker = { fg = c.fg, bg = ui.float },
+  SnacksPickerPreviewBorder = { fg = ui.border, bg = ui.float },
+  SnacksPickerPreview = { fg = c.fg, bg = ui.float },
+  SnacksPickerPreviewTitle = { fg = c.bg, bg = c.green, bold = true },
+  SnacksPickerBoxBorder = { fg = ui.border, bg = ui.float },
+  SnacksPickerInputBorder = { fg = ui.border, bg = ui.float },
+  SnacksPickerInputSearch = { fg = c.fg, bg = ui.float },
+  SnacksPickerListBorder = { fg = ui.border, bg = ui.float },
+  SnacksPickerList = { fg = c.fg, bg = ui.float },
+  SnacksPickerListTitle = { fg = c.bg, bg = c.blue, bold = true },
 }
 
 -- Apply all highlights
