@@ -524,6 +524,19 @@
         source ~/.config/fzf/colors.sh
       fi
 
+      # Re-init oh-my-posh when wallust theme changes
+      # switch-theme sets OMP_THEME_VERSION in tmux env; we detect it here
+      _omp_local_theme_version=""
+      _reload_omp_on_theme_change() {
+        if [ -n "$TMUX" ] && command -v oh-my-posh &> /dev/null; then
+          local remote_version=$(tmux show-environment OMP_THEME_VERSION 2>/dev/null | cut -d= -f2-)
+          if [ -n "$remote_version" ] && [ "$remote_version" != "$_omp_local_theme_version" ]; then
+            _omp_local_theme_version="$remote_version"
+            eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/config.json)"
+          fi
+        fi
+      }
+
       # Update FZF colors from tmux environment before each prompt
       # This allows theme changes to propagate to existing shells
       _update_fzf_from_tmux() {
@@ -535,6 +548,7 @@
         fi
       }
       autoload -U add-zsh-hook
+      add-zsh-hook precmd _reload_omp_on_theme_change
       add-zsh-hook precmd _update_fzf_from_tmux
 
       # twig completions (git worktree manager)

@@ -53,6 +53,9 @@ if command -v tmux &>/dev/null && tmux info &>/dev/null 2>&1; then
         tmux setenv -g FZF_DEFAULT_OPTS "$FZF_DEFAULT_OPTS"
         # Note: Shells will pick up new FZF_DEFAULT_OPTS automatically via precmd hook
     fi
+
+    # Signal oh-my-posh to re-init in existing shells
+    tmux setenv -g OMP_THEME_VERSION "$(date +%s)"
 fi
 
 # Reload Alacritty via IPC socket
